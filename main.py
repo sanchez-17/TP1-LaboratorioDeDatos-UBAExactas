@@ -72,3 +72,10 @@ atomizarColumna(df1,'productos',' Y ')
 atomizarColumna(df1,'productos',';')
 #Spliteamos por -
 atomizarColumna(df1,'productos','-')
+
+""" separar """
+
+df_productos = df1.loc[:,['productos','razón social','establecimiento']]
+df_productos.dropna(inplace=True,subset="productos")
+atomizarColumna(df_productos,'productos', ',')
+df1.drop('productos',axis=1)

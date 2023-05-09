@@ -56,7 +56,7 @@ def quitar_punto(string):
     return string.replace(".", "")
         
 def quitar_dospuntos(string):
-   return string.replace(":", "")
+    return string.replace(":", "")
 
 #df1.dropna(inplace=True,subset="productos")
 
@@ -73,4 +73,10 @@ atomizarColumna(df1,'productos','-')
 
 df1['productos'] = df1['productos'].apply(quitar_punto)
 
-a=df1.loc[df1['productos'].str.contains('INCULTO',na=False)]
+def cambiar_todo_string(string,viejo,nuevo):
+    if string.str.contains(viejo):
+        return nuevo
+
+#df1.loc[df['productos']]
+
+

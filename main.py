@@ -9,11 +9,11 @@ import pandas as pd
 import re
 
 
-padron = '/home/labo2023/Descargas/padron-de-operadores-organicos-certificados.csv'
-salario = '/home/labo2023/Descargas/w_median_depto_priv_clae2.csv'
-loccensales = '/home/labo2023/Descargas/localidades-censales.csv'
-dicdepto = '/home/labo2023/Descargas/diccionario_cod_depto.csv'
-dicclase = '/home/labo2023/Descargas/diccionario_clae2.csv'
+padron = './dataframes/padron-de-operadores-organicos-certificados.csv'
+salario = './dataframes/w_median_depto_priv_clae2.csv'
+loccensales = './dataframes/localidades-censales.csv'
+dicdepto = './dataframes/diccionario_cod_depto.csv'
+dicclase = './dataframes/diccionario_clae2.csv'
 
 df1 = pd.read_csv(padron,encoding = 'windows-1258')
 df2 = pd.read_csv(salario)
@@ -42,22 +42,18 @@ def atomizarColumna(df,col,string):
     while i < rango:
         atomizarFila(df,col,0,string)
         i += 1
-#
-#def quitar_parentesis(string):
-#    regex = r"\([^()]*\)"
-#    res = re.sub(regex, "", string)
-#    return res
-#
-#print(quitar_parentesis("CHIA (SALVIA HISPANICA L), MAIZ PISINGALLO, CAMPO NATURAL"))
-#
-#def quitar_punto(string):
-#    return string.replace(".", "")
-#
-#print(quitar_parentesis(quitar_punto("CHIA (SALVIA HISPANICA L.) ...........")))
-#
+
+def quitar_parentesis(string):
+    regex = r"\([^()]*\)"
+    res = re.sub(regex, "", string)
+    return res
+
+def quitar_punto(string):
+    return string.replace(".", "")
+
         
-#def quitar_dospuntos(string):
-#   return string.replace(":", "")
+def quitar_dospuntos(string):
+   return string.replace(":", "")
 
 #df1['productos'] = df1['productos'].apply(quitar_punto)
 
@@ -72,3 +68,4 @@ atomizarColumna(df1,'productos',' Y ')
 atomizarColumna(df1,'productos',';')
 #Spliteamos por -
 atomizarColumna(df1,'productos','-')
+

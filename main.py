@@ -46,7 +46,7 @@ def atomizarColumna(df,col,string):
     while i < rango:
         atomizarFila(df,col,0,string)
         i += 1
-<<<<<<< HEAD
+
 
 def quitar_parentesis(string):
     regex = r"\([^()]*\)"
@@ -59,19 +59,6 @@ def quitar_punto(string):
         
 def quitar_dospuntos(string):
    return string.replace(":", "")
-=======
->>>>>>> juan
-
-def quitar_parentesis(string):
-    regex = r"\([^()]*\)"
-    res = re.sub(regex, "", string)
-    return res
-
-def quitar_punto(string):
-    return string.replace(".", "")
-        
-def quitar_dospuntos(string):
-    return string.replace(":", "")
 
 #df1.dropna(inplace=True,subset="productos")
 
@@ -86,8 +73,6 @@ atomizarColumna(df1,'productos',';')
 #Spliteamos por -
 atomizarColumna(df1,'productos','-')
 
-<<<<<<< HEAD
-=======
 df1['productos'] = df1['productos'].apply(quitar_punto)
 
 def cambiar_todo_string(string,viejo,nuevo):
@@ -97,4 +82,11 @@ def cambiar_todo_string(string,viejo,nuevo):
 #df1.loc[df['productos']]
 
 
->>>>>>> juan
+
+""" separar """
+
+df_productos = df1.loc[:,['productos','razón social','establecimiento']]
+df_productos.dropna(inplace=True,subset="productos")
+atomizarColumna(df_productos,'productos', ',')
+df1.drop('productos',axis=1)
+

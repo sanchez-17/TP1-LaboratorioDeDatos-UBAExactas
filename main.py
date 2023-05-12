@@ -103,7 +103,8 @@ df1.at[908, 'productos'] = sin_definir
 mask = df1.rubro.isna() & df1.productos.isna()
 cols = ['rubro', 'productos']
 df1.loc[mask, cols] = [sin_definir for col in cols]
-
+#fila 879 tiene mas de un producto, a definir mas adelante
+df1.loc[879,'rubro'] = sin_definir
 
     
 
@@ -192,4 +193,15 @@ def cuantos_nan(df):
     res['Porcentaje de NaN'] = res['Porcentaje de NaN'].round(2).astype(str) + '%'
     res.index = df.columns
     print(res)
+
+def extraer_pronombres(texto):
+    # Expresión regular para encontrar pronombres
+    patron = r'\b(para|de|con)\b'
+
+    # Remover los pronombres del texto
+    texto_sin_pronombres = re.sub(patron, '', texto, flags=re.IGNORECASE)
+    
+    # Retornar el texto sin pronombres
+    return texto_sin_pronombres
 #%%
+s = "EXTRACCION DE FRUTAS Y VERDURAS"

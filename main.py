@@ -30,7 +30,8 @@ df5 = pd.read_csv(dicclase)
 def atomizarFila(df,col,fila,string):
     valores_atomicos = df.loc[fila, col].split(string)
     for valor in valores_atomicos:
-        df.at[len(df), col] = valor
+        df.at[len(df),:] = df.loc[fila,:]
+        df.at[len(df)-1, col] = valor
     #borramos la fila original    
     df.drop([fila],inplace=True)
     df.reset_index(drop=True, inplace=True)
@@ -105,9 +106,10 @@ cols = ['rubro', 'productos']
 df1.loc[mask, cols] = [sin_definir for col in cols]
 #fila 879 tiene mas de un producto, a definir mas adelante
 df1.loc[879,'rubro'] = sin_definir
+#Hay registro con error de tipo: agicultura
 
     
-
+#%%
 #Atomizando columna rubro
 #Genero serie booleana para encontrar lo que buscamos
 df1.rubro.str.contains("SIN DEFINIR").value_counts()
@@ -138,6 +140,7 @@ Ademas sacar los puntos
 y por ultimo sacar los espacios(el primer espacio y ultimo)
 
 """
+
 col="rubro"
 atomizarColumna(df1,col,'/')
 #Verifico
@@ -145,6 +148,9 @@ df1.rubro.str.contains("/").sum() #0
 
 atomizarColumna(df1,col,',')
 df1.rubro.str.contains(',').sum() #0
+
+atomizarColumna(df1,col,';')
+df1.rubro.str.contains(';').sum() #0
 
 atomizarColumna(df1,col,'-')
 df1.rubro.str.contains('-').sum() #0

@@ -193,5 +193,3 @@ def cuantos_nan(df):
     res.index = df.columns
     print(res)
 #%%
-nans = df1.isna().sum()
-nans["%"]= df1.isna().sum() / len(df1) * 100

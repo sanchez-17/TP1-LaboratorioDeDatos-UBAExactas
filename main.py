@@ -50,6 +50,8 @@ def quitar_parentesis(string):
 def reemplazar(string,cadena,reemplazo):
     return string.replace(cadena,reemplazo)
 
+def sacar_espacios_en_extremos(string):
+    return string.strip()
 #%%
 #Sacamos los nan de columna productos
 df1.dropna(inplace=True,subset=["productos"])
@@ -155,6 +157,8 @@ df1.rubro.str.contains(';').sum() #0
 atomizarColumna(df1,col,'-')
 df1.rubro.str.contains('-').sum() #0
 
+df1[col] = df1[col].apply(sacar_espacios_en_extremos)
+a=df1[df1.rubro.str.startswith(" ")].rubro.count() #0
 df1[col] = df1[col].apply(quitar_punto,args=('.'))
 #Es posible que tengamos problemas al separar por " Y "
 bool4 = df1.rubro.str.contains(" Y ")

@@ -52,6 +52,25 @@ def reemplazar(string,cadena,reemplazo):
 
 def sacar_espacios_en_extremos(string):
     return string.strip()
+
+def cuantos_nan(df):
+    nan_cant = df.isna().sum()
+    nan_porcentaje = (nan_cant / len(df)) * 100
+    res = pd.concat([nan_cant, nan_porcentaje], axis=1, keys=['Recuento de NaN', 'Porcentaje de NaN'])
+    res['Porcentaje de NaN'] = res['Porcentaje de NaN'].round(2).astype(str) + '%'
+    res.index = df.columns
+    print(res)
+
+def extraer_pronombres(texto):
+    # Expresión regular para encontrar pronombres
+    patron = r'\b(para|de|con)\b'
+
+    # Remover los pronombres del texto
+    texto_sin_pronombres = re.sub(patron, '', texto, flags=re.IGNORECASE)
+    
+    # Retornar el texto sin pronombres
+    return texto_sin_pronombres
+
 #%%
 #Sacamos los nan de columna productos
 df1.dropna(inplace=True,subset=["productos"])
@@ -84,12 +103,29 @@ df_productos.dropna(inplace=True,subset="productos")
 atomizarColumna(df_productos,'productos', ',')
 df1.drop('productos',axis=1)
 """
-Rubro separar por:
+productos separar por:
     ?
     +
 """
+#Es posible que tengamos problemas al separar por " Y ". La tarea no es trivial. VER
+bool4 = df1.rubro.str.contains(" Y ")
+aux4 = df1.loc[bool4].rubro
+
+bool5 = df1.rubro.str.contains("EMPAQUE")
+aux5 = df1.loc[bool5,["rubro","productos"]]
+
+bool6 = df1.rubro.str.contains(" Y ")
+aux5 = df1.loc[bool4].rubro
+
+##Bueno, separamos por " Y "
+
+
+#Para todos aquellos productos que tengan "INCULTO", definir en columna rubro AGRICULTURA
+filtro = df1.productos.str.contains("INCULTO")
+df1.loc[filtro,'rubro'] = "AGRICULTURA"
+
 #%%
-"""COLUMNA RUBRO"""
+"""-------------------------------COLUMNA RUBRO--------------------------------------------"""
 #Vemos los casos particulares
 sin_definir="INDEFINIDO"
 #Veamos si para un producto."CAMPO INCULTO" aplica un valor en especifico para 
@@ -108,9 +144,17 @@ cols = ['rubro', 'productos']
 df1.loc[mask, cols] = [sin_definir for col in cols]
 #fila 879 tiene mas de un producto, a definir mas adelante
 df1.loc[879,'rubro'] = sin_definir
-#Hay registro con error de tipo: agicultura
-
-    
+#Hay registros con error de tipo: agicultura
+df1.loc[df1.rubro == "AGICULTURA"] = "AGRICULTURA"
+#Hay campos con el valor "SIN DEFINIR",, los cambiamos a "INDEFINIDO"
+df1.loc[df1.rubro == "SIN DEFINIR"] = sin_definir
+#Aquellas filas en donde contienen puntos. En algunas 
+#funcionan como separadores, en otras no aportan nada
+terminan_en_punto = df1.rubro.str.endswith('.')
+df1.loc[terminan_en_punto,'rubro'] = df1.loc[terminan_en_punto,'rubro'].str.replace(".", "")
+#Veo cuantas siguen con puntos como separadores:2,mas adelante los separamos
+f = df1.rubro.str.contains("\.")
+aux=df1.loc[f,"rubro"]
 #%%
 #Atomizando columna rubro
 #Genero serie booleana para encontrar lo que buscamos
@@ -123,16 +167,12 @@ df1_categoria_comercializadores = df1.loc[filtro]
 #¿Es cierto que para todas las tuplas en donde categoria_desc="Comercializadores" pasa que rubro="SIN DEFINIR"?
 len(df1_rubro_sin_definir) == len(df1_categoria_comercializadores)
 #Es verdad!
-
-#Veo los registros con el valor "OTROS " en columna rubro
-bool2=df1.rubro.str.contains("OTROS")
-aux3=df1.loc[bool2]
-#Hay 7 registros
-
+#%%
 #Vemos la cantidad de valores unicos para poder atomizar aquellas tuplas que asi lo requieran
-c = df1.rubro.value_counts()
+aux = df1.rubro.value_counts()
 """
 Habra que separar por:
+    .
     /
     " Y "
     ,
@@ -144,6 +184,10 @@ y por ultimo sacar los espacios(el primer espacio y ultimo)
 """
 
 col="rubro"
+atomizarColumna(df1,col,'.')
+#Verifico
+df1.rubro.str.contains("\.").sum() #0
+
 atomizarColumna(df1,col,'/')
 #Verifico
 df1.rubro.str.contains("/").sum() #0
@@ -158,60 +202,6 @@ atomizarColumna(df1,col,'-')
 df1.rubro.str.contains('-').sum() #0
 
 df1[col] = df1[col].apply(sacar_espacios_en_extremos)
-a=df1[df1.rubro.str.startswith(" ")].rubro.count() #0
-df1[col] = df1[col].apply(quitar_punto,args=('.'))
-#Es posible que tengamos problemas al separar por " Y "
-bool4 = df1.rubro.str.contains(" Y ")
-aux4 = df1.loc[bool4].rubro
-
-bool5 = df1.rubro.str.contains("EMPAQUE")
-aux5 = df1.loc[bool5,["rubro","productos"]]
-
-bool6 = df1.rubro.str.contains(" Y ")
-aux5 = df1.loc[bool4].rubro
-
-##Bueno, separamos por " Y "
-
-
-#Para todos aquellos productos que tengan "INCULTO", definir en columna rubro AGRICULTURA
-filtro = df1.productos.str.contains("INCULTO")
-df1.loc[filtro,'rubro'] = "AGRICULTURA"
+df1[df1.rubro.str.startswith(" ")].rubro.count() #0
 #%%
-df1.productos.str.contains("VID").count
-a=df1.productos=="UVAS"
-a.sum()
-b=df1.loc[df1.productos.str.contains("VINO"),["rubro","productos"]]
-#42 contiene UVAS
-c=df1.loc[df1.productos.str.contains("VID"),["rubro","productos"]]
-c=df1.loc[df1.productos.str.contains("VID")]
 
-#110 contiene VID
-d=df1.loc[df1.productos.str.contains("ACOPIO"),["rubro","productos"]]
-#%%
-df_provincia = df1[["provincia_id","provincia"]].drop_duplicates().reset_index(drop=True)
-df_pais = df1[["pais_id","pais"]].drop_duplicates().reset_index(drop=True)
-
-#%%
-df_provi = df[['D_NOMBRE', 'D_NUMERO', 'D_CUIL']]
-df_areas = df['D_AREAS'].str.split(',', expand=True).stack().reset_index(level=1, drop=True).reset_index(name='D_AREAS')
-
-#%%
-def cuantos_nan(df):
-    nan_cant = df.isna().sum()
-    nan_porcentaje = (nan_cant / len(df)) * 100
-    res = pd.concat([nan_cant, nan_porcentaje], axis=1, keys=['Recuento de NaN', 'Porcentaje de NaN'])
-    res['Porcentaje de NaN'] = res['Porcentaje de NaN'].round(2).astype(str) + '%'
-    res.index = df.columns
-    print(res)
-
-def extraer_pronombres(texto):
-    # Expresión regular para encontrar pronombres
-    patron = r'\b(para|de|con)\b'
-
-    # Remover los pronombres del texto
-    texto_sin_pronombres = re.sub(patron, '', texto, flags=re.IGNORECASE)
-    
-    # Retornar el texto sin pronombres
-    return texto_sin_pronombres
-#%%
-s = "EXTRACCION DE FRUTAS Y VERDURAS"

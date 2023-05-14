@@ -213,3 +213,124 @@ df1[df1.rubro.str.startswith(" ")].rubro.count() #0
 #%%
 """--------------Columna establecimiento-------------------"""
 df1.loc[df1.establecimiento == "NC","establecimiento"] = sin_definir
+#%%
+df2.rename(columns={'id_provincia_indec': 'provincia_id'}, inplace=True)
+
+""" Como saber cuantos registros de la columna 'w_median' son inferiores a 0 """
+
+df2_salario_negativo = df2.loc[df2['w_median'] < 0] 
+
+
+""" Y para saber cuanto representan esa cantidad respecto del total simplemente calculamos"""
+
+len(df2_salario_negativo)/len(df2)*100
+
+
+""" Luego para ubicar los valores NaN en la tabla"""
+
+NaN_filas = df2[df2.isna().any(axis=1)] # Con esto sabemos cuantas filas tienen al menos 1 NaN
+NaN_columnas = df2.columns[df2.isna().any()].tolist() # Con esto sabemos que columnas tienen NaN
+
+# Y ahora podemos fijarnos si los NaN aparecen simultaneamente en ambas columnas o si se dividen apareciendo a veces
+# en una y a veces en la otra.
+
+dptoNaN = df2['codigo_departamento_indec'].isna() # Retorna 9156
+provNaN = df2['id_provincia_indec'].isna() # Retorna 9156
+
+# Pero con esto no nos alcanza asi que por último chequeamos si cada vez que aparece False o True en dptoNaN 
+# se corresponde con los False o True de provNaN. Eso daria una serie de Pandas llena de valores True. Y si el sum()
+# (que solo cuenta los True) es igual a la len del dataframe original entonces cada vez que aparece NaN en una aparece
+# en la otra.
+
+(dptoNaN == provNaN).sum() == len(df2)  # Esto da True.
+
+#%%
+
+#TRATAMIENTO DE NANS
+df3.loc[df3.departamento_nombre.isna(),"departamento_nombre"]=sin_definir
+df3.loc[df3.funcion.isna(),"funcion"]=sin_definir
+df3.loc[df3.municipio_nombre.isna(),"municipio_nombre"]=sin_definir
+df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
+df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
+
+df3 = df3.rename(columns ={'provincia_nombre':'nombre_provincia'})
+df3 = df3.rename(columns ={'municipio_nombre':'nombre_municipio'})
+df3 = df3.rename(columns ={'departamento_nombre':'nombre_departamento'})
+df3_dict=df3
+
+#PARTIMOS PROVINCIA
+df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
+df3_provincia==df4_provincia
+df3_dict = df3_dict.drop('nombre_provincia',axis=1)
+
+#PARTIMOS MUNICIPIO
+df3_municipio = df3[['municipio_id', 'nombre_municipio']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('nombre_municipio',axis=1)
+
+#PARTIMOS DEPARTAMENTO
+df3_departamento = df3[['departamento_id', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('nombre_departamento',axis=1)
+
+#PARTIMOS LOCALIDAD
+df3_localidad = df3[['id', 'nombre','funcion','centroide_lat','centroide_lon','categoria','fuente']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop(labels=['nombre','funcion','centroide_lat','centroide_lon','categoria','fuente'],axis=1)
+#%%
+
+# PARTIENDO EL DATAFRAME 4 
+
+# PRIMERO RENOMBRAMOS 
+
+df4  = df4.rename(columns ={'codigo_departamento_indec': 'codigo_departamento'})
+df4 = df4.rename(columns ={'nombre_departamento_indec':'nombre_departamento'})
+df4  = df4.rename(columns ={'id_provincia_indec': 'provincia_id'})
+df4 = df4.rename(columns ={'nombre_provincia_indec':'nombre_provincia'})
+
+#PARTIMOS DEPARTAMENTO
+df4_departamento = df4[['codigo_departamento', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
+
+#PARTIMOS PROVINCIA
+df4_provincia = df4[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
+
+# df4_dict es la versión normalizada de df4 que se conecta mediante la PK con df4_departamento y df4_provincia
+df4_dict = df4.drop('nombre_departamento',axis=1)
+df4_dict = df4_dict.drop('nombre_provincia',axis=1)
+
+#%%
+
+# EL df5 tiene un valor NaN cuando 'clae2' es igual a 999. Esto es debido a que el valor 'OTROS' no tiene asignada una
+# letra. Por lo que decidimos asignarle la Z.
+
+df5.loc[85,'letra'] = 'Z'
+
+# PARTIENDO EL DATAFRAME 5
+
+# PARTIMOS CLAE2_DESC
+
+df5_clae2 = df5[['clae2', 'clae2_desc']].drop_duplicates().reset_index(drop=True)
+
+# PARTIMOS LETRA_DESC
+
+df5_letra = df5[['letra', 'letra_desc']].drop_duplicates().reset_index(drop=True)
+
+# df5_dict es la versión normalizada de df5 que se conecta mediante la PK con df5_clae2 y df5_letra
+df5_dict = df5.drop('clae2_desc',axis=1)
+df5_dict = df5_dict.drop('letra_desc',axis=1)
+
+""" no funciona bien este codigo, puede tomarse como descripción y por lo tanto no ser necesario normalizar
+
+# Bien ahora solo falta normalizar df5_clae2 y df5_letra
+
+# NORMALIZAMOS df5_clae2
+
+atomizarColumna(df5_clae2,'clae2_desc', ', ')
+#Spliteamos por y
+atomizarColumna(df5_clae2,'clae2_desc',' y ')
+"""
+
+# NORMALIZAMOS df5_letra
+
+# Para ello hace falta renombrar gran parte de las descripciones ya que se pensaron para estar como un string
+# pero nosotros queremos atomizar cada atributo para que esten en 1FN en vez de pensarlos como un string.
+
+df5_letra = df5_letra.replace({'EXPLOTACION DE MINAS Y CANTERAS' : 'EXPLOTACIÓN DE MINAS Y EXPLOTACIÓN DE CANTERAS'},
+                              'SUMINISTRO DE ELECTRICIDAD, GAS, VAPOR Y AIRE ACONDICIONADO')

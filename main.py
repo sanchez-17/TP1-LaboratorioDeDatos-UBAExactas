@@ -17,12 +17,16 @@ df4 = pd.read_csv(dicdepto)
 df5 = pd.read_csv(dicclase)
 
 #%%
+def crear_y_añadir_fila(df,fila_old,col,valor):
+    df.loc[len(df)] = df.loc[fila_old,:]
+    df.at[len(df)-1, col] = valor
+
 def atomizarFila(df,col,fila,string):
     valores_atomicos = df.loc[fila, col].split(string)
     for valor in valores_atomicos:
-        #df.at[len(df),:] = df.loc[fila,:]
-        df.loc[len(df)] = df.loc[fila,:]
-        df.at[len(df)-1, col] = valor
+        crear_y_añadir_fila(df, fila,col, valor)
+        #df.loc[len(df)] = df.loc[fila,:]
+        #df.at[len(df)-1, col] = valor
     #borramos la fila original    
     df.drop([fila],inplace=True)
     df.reset_index(drop=True, inplace=True)
@@ -94,15 +98,13 @@ aux=df1.loc[f,"rubro"]
 #%%
 #Sacamos los nan de columna productos
 #df1.dropna(inplace=True,subset=["productos"])
-
+prod_con_par = df1.loc[df1.productos.str.contains("\(")]
 """-------Columna productos-------------"""
 #Veo los NaN
 
 col = "productos"
 #Spliteamos por comas
 atomizarColumna(df1,col,', ')
-#Spliteamos por y
-atomizarColumna(df1,col,' Y ')###
 #Spliteamos por ;
 atomizarColumna(df1,col,';')
 #Spliteamos por -
@@ -110,16 +112,6 @@ atomizarColumna(df1,col,'-')
 atomizarColumna(df1,col,' + ')
 atomizarColumna(df1,col,' ? ')
 #%%
-
-df_productos = df1.loc[:,['productos','razón social','establecimiento']]
-df_productos.dropna(inplace=True,subset="productos")
-atomizarColumna(df_productos,'productos', ',')
-df1.drop('productos',axis=1)
-"""
-productos separar por:
-    ?
-    +
-"""
 #Es posible que tengamos problemas al separar por " Y ". La tarea no es trivial. VER
 bool4 = df1.rubro.str.contains(" Y ")
 aux4 = df1.loc[bool4].rubro

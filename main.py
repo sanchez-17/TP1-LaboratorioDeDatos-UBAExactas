@@ -77,14 +77,13 @@ df1.at[908, 'rubro'] = sin_definir
 df1.at[908, 'productos'] = sin_definir
 #luego aquellas las que tanto en productos y rubro tengo nan:
 mask = df1.rubro.isna() & df1.productos.isna()
-cols = ['rubro', 'productos']
-df1.loc[mask, cols] = [sin_definir for col in cols]
+df1.loc[mask, ['rubro', 'productos']] = [sin_definir for col in ['rubro', 'productos']]
 #fila 879 tiene mas de un producto, a definir mas adelante
 df1.loc[879,'rubro'] = sin_definir
 #Hay registros con error de tipo: agicultura
-df1.loc[df1.rubro == "AGICULTURA"] = "AGRICULTURA"
+df1.loc[df1.rubro == "AGICULTURA","rubro"] = "AGRICULTURA"
 #Hay campos con el valor "SIN DEFINIR",, los cambiamos a "INDEFINIDO"
-df1.loc[df1.rubro == "SIN DEFINIR"] = sin_definir
+df1.loc[df1.rubro == "SIN DEFINIR","rubro"] = sin_definir
 #Aquellas filas en donde contienen puntos. En algunas 
 #funcionan como separadores, en otras no aportan nada
 terminan_en_punto = df1.rubro.str.endswith('.')
@@ -92,8 +91,6 @@ df1.loc[terminan_en_punto,'rubro'] = df1.loc[terminan_en_punto,'rubro'].str.repl
 #Veo cuantas siguen con puntos como separadores:2,mas adelante los separamos
 f = df1.rubro.str.contains("\.")
 aux=df1.loc[f,"rubro"]
-
-    
 #%%
 #Sacamos los nan de columna productos
 #df1.dropna(inplace=True,subset=["productos"])
@@ -110,17 +107,9 @@ atomizarColumna(df1,col,' Y ')###
 atomizarColumna(df1,col,';')
 #Spliteamos por -
 atomizarColumna(df1,col,'-')
+atomizarColumna(df1,col,' + ')
+atomizarColumna(df1,col,' ? ')
 #%%
-
-def cambiar_todo_string(string,viejo,nuevo):
-    if string.str.contains(viejo):
-        return nuevo
-
-#df1.loc[df['productos']]
-
-
-
-""" separar """
 
 df_productos = df1.loc[:,['productos','razón social','establecimiento']]
 df_productos.dropna(inplace=True,subset="productos")

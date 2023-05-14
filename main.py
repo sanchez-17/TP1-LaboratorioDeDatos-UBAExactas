@@ -253,6 +253,46 @@ df4_departamento = df4[['codigo_departamento', 'nombre_departamento']].drop_dupl
 #PARTIMOS PROVINCIA
 df4_provincia = df4[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
 
-# df4_dict es la versión normalizada de df4 que se conecta mediante las referencias con df4_departamento y df4_provincia
+# df4_dict es la versión normalizada de df4 que se conecta mediante la PK con df4_departamento y df4_provincia
 df4_dict = df4.drop('nombre_departamento',axis=1)
 df4_dict = df4_dict.drop('nombre_provincia',axis=1)
+
+#%%
+
+# EL df5 tiene un valor NaN cuando 'clae2' es igual a 999. Esto es debido a que el valor 'OTROS' no tiene asignada una
+# letra. Por lo que decidimos asignarle la Z.
+
+df5.loc[85,'letra'] = 'Z'
+
+# PARTIENDO EL DATAFRAME 5
+
+# PARTIMOS CLAE2_DESC
+
+df5_clae2 = df5[['clae2', 'clae2_desc']].drop_duplicates().reset_index(drop=True)
+
+# PARTIMOS LETRA_DESC
+
+df5_letra = df5[['letra', 'letra_desc']].drop_duplicates().reset_index(drop=True)
+
+# df5_dict es la versión normalizada de df5 que se conecta mediante la PK con df5_clae2 y df5_letra
+df5_dict = df5.drop('clae2_desc',axis=1)
+df5_dict = df5_dict.drop('letra_desc',axis=1)
+
+""" no funciona bien este codigo, puede tomarse como descripción y por lo tanto no ser necesario normalizar
+
+# Bien ahora solo falta normalizar df5_clae2 y df5_letra
+
+# NORMALIZAMOS df5_clae2
+
+atomizarColumna(df5_clae2,'clae2_desc', ', ')
+#Spliteamos por y
+atomizarColumna(df5_clae2,'clae2_desc',' y ')
+"""
+
+# NORMALIZAMOS df5_letra
+
+# Para ello hace falta renombrar gran parte de las descripciones ya que se pensaron para estar como un string
+# pero nosotros queremos atomizar cada atributo para que esten en 1FN en vez de pensarlos como un string.
+
+df5_letra = df5_letra.replace({'EXPLOTACION DE MINAS Y CANTERAS' : 'EXPLOTACIÓN DE MINAS Y EXPLOTACIÓN DE CANTERAS'},
+                              'SUMINISTRO DE ELECTRICIDAD, GAS, VAPOR Y AIRE ACONDICIONADO')

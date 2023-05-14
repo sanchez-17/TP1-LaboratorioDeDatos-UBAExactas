@@ -82,9 +82,9 @@ df1.loc[mask, cols] = [sin_definir for col in cols]
 #fila 879 tiene mas de un producto, a definir mas adelante
 df1.loc[879,'rubro'] = sin_definir
 #Hay registros con error de tipo: agicultura
-df1.loc[df1.rubro == "AGICULTURA"] = "AGRICULTURA"
+df1.loc[df1.rubro == "AGICULTURA","rubro"] = "AGRICULTURA"
 #Hay campos con el valor "SIN DEFINIR",, los cambiamos a "INDEFINIDO"
-df1.loc[df1.rubro == "SIN DEFINIR"] = sin_definir
+df1.loc[df1.rubro == "SIN DEFINIR","rubro"] = sin_definir
 #Aquellas filas en donde contienen puntos. En algunas 
 #funcionan como separadores, en otras no aportan nada
 terminan_en_punto = df1.rubro.str.endswith('.')
@@ -205,3 +205,34 @@ df1[df1.rubro.str.startswith(" ")].rubro.count() #0
 #%%
 """--------------Columna establecimiento-------------------"""
 df1.loc[df1.establecimiento == "NC","establecimiento"] = sin_definir
+#%%
+df2.rename(columns={'id_provincia_indec': 'provincia_id'}, inplace=True)
+
+""" Como saber cuantos registros de la columna 'w_median' son inferiores a 0 """
+
+df2_salario_negativo = df2.loc[df2['w_median'] < 0] 
+
+
+""" Y para saber cuanto representan esa cantidad respecto del total simplemente calculamos"""
+
+len(df2_salario_negativo)/len(df2)*100
+
+
+""" Luego para ubicar los valores NaN en la tabla"""
+
+NaN_filas = df2[df2.isna().any(axis=1)] # Con esto sabemos cuantas filas tienen al menos 1 NaN
+NaN_columnas = df2.columns[df2.isna().any()].tolist() # Con esto sabemos que columnas tienen NaN
+
+# Y ahora podemos fijarnos si los NaN aparecen simultaneamente en ambas columnas o si se dividen apareciendo a veces
+# en una y a veces en la otra.
+
+dptoNaN = df2['codigo_departamento_indec'].isna() # Retorna 9156
+provNaN = df2['id_provincia_indec'].isna() # Retorna 9156
+
+# Pero con esto no nos alcanza asi que por último chequeamos si cada vez que aparece False o True en dptoNaN 
+# se corresponde con los False o True de provNaN. Eso daria una serie de Pandas llena de valores True. Y si el sum()
+# (que solo cuenta los True) es igual a la len del dataframe original entonces cada vez que aparece NaN en una aparece
+# en la otra.
+
+(dptoNaN == provNaN).sum() == len(df2)  # Esto da True.
+

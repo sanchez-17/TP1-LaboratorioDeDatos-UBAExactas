@@ -249,8 +249,10 @@ df4 = df4.rename(columns ={'nombre_provincia_indec':'nombre_provincia'})
 
 #PARTIMOS DEPARTAMENTO
 df4_departamento = df4[['codigo_departamento', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
-df4 = df4.drop('nombre_departamento',axis=1)
 
 #PARTIMOS PROVINCIA
 df4_provincia = df4[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
-df4 = df4.drop('nombre_provincia',axis=1)
+
+# df4_dict es la versión normalizada de df4 que se conecta mediante las referencias con df4_departamento y df4_provincia
+df4_dict = df4.drop('nombre_departamento',axis=1)
+df4_dict = df4_dict.drop('nombre_provincia',axis=1)

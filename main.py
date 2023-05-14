@@ -238,6 +238,36 @@ provNaN = df2['id_provincia_indec'].isna() # Retorna 9156
 
 #%%
 
+#TRATAMIENTO DE NANS
+df3.loc[df3.departamento_nombre.isna(),"departamento_nombre"]=sin_definir
+df3.loc[df3.funcion.isna(),"funcion"]=sin_definir
+df3.loc[df3.municipio_nombre.isna(),"municipio_nombre"]=sin_definir
+df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
+df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
+
+df3 = df3.rename(columns ={'provincia_nombre':'nombre_provincia'})
+df3 = df3.rename(columns ={'municipio_nombre':'nombre_municipio'})
+df3 = df3.rename(columns ={'departamento_nombre':'nombre_departamento'})
+df3_dict=df3
+
+#PARTIMOS PROVINCIA
+df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
+df3_provincia==df4_provincia
+df3_dict = df3_dict.drop('nombre_provincia',axis=1)
+
+#PARTIMOS MUNICIPIO
+df3_municipio = df3[['municipio_id', 'nombre_municipio']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('nombre_municipio',axis=1)
+
+#PARTIMOS DEPARTAMENTO
+df3_departamento = df3[['departamento_id', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('nombre_departamento',axis=1)
+
+#PARTIMOS LOCALIDAD
+df3_localidad = df3[['id', 'nombre','funcion','centroide_lat','centroide_lon','categoria','fuente']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop(labels=['nombre','funcion','centroide_lat','centroide_lon','categoria','fuente'],axis=1)
+#%%
+
 # PARTIENDO EL DATAFRAME 4 
 
 # PRIMERO RENOMBRAMOS 

@@ -96,15 +96,41 @@ df1.loc[terminan_en_punto,'rubro'] = df1.loc[terminan_en_punto,'rubro'].str.repl
 f = df1.rubro.str.contains("\.")
 aux=df1.loc[f,"rubro"]
 #%%
-#Sacamos los nan de columna productos
-#df1.dropna(inplace=True,subset=["productos"])
-prod_con_par = df1.loc[df1.productos.str.contains("\(")]
-"""-------Columna productos-------------"""
-#Veo los NaN
+prod_con_parentesis = df1.loc[df1.productos.str.contains("\("),"productos"].unique()
+#hay 1 valor con "HORTICULTURA: (RAIZ, HOJAS, FRUTOS) - FRUTALES: (CAROZO, PEPITA, CITRI ..."
+con_comas_en_parentesis = df1.productos.str.contains("RAIZ, HOJAS, FRUTOS")
+vista = df1.loc[con_comas_en_parentesis,:]
+#Lo modificamos manualmente para que rubro contemple a FRUTICULTURA, y productos no tenga parentesis
+crear_y_añadir_fila(df1,124,"rubro","HORTICULTURA")
+#nos falta modificar su columna productos a esta fila creada
+df1.at[len(df1)-1, "productos"] = "RAIZ,HOJAS,FRUTOS"
+
+crear_y_añadir_fila(df1,124,"rubro","FRUTICULTURA")
+#nos falta midificar su columna productos a esta fila creada
+df1.at[len(df1)-1, "productos"] = "CAROZO,PEPITA,CITRICOS"
+#Borramos la fila 124
+df1.drop([124],inplace=True)
+df1.reset_index(drop=True, inplace=True)
+#hay 3 valores con "(CARNE Y LANA)"
+con_carne_lana = df1.productos.str.contains("CARNE Y LANA")
+df1.loc[con_carne_lana,"productos"] = "CARNE BOVINA,CARNE OVINA,LANA"
 
 col = "productos"
+df1.productos = df1.productos.apply(quitar_parentesis)
 #Spliteamos por comas
-atomizarColumna(df1,col,', ')
+atomizarColumna(df1,col,',')
+#verificamos si siguen habiendo parentesis
+a=df1.loc[df1.productos.str.contains("\("),"productos"] #0
+
+#Se decide que lana corresponde al rubro procesamiento textil y los distintos tipos de lanas se unifican en un solo producto: "lana". Excepto 3 en donde sus valores son "TOPS DE LANA" o "BLOUSSE" que quedan en sus respectivos rubros
+contienen_lana = df1.productos.str.contains("LANA") &  ~df1.productos.str.contains("AVELLANA") & ~df1.productos.str.contains("BLOUSSE") & ~df1.productos.str.contains("TOPS DE LANA")
+df1.loc[contienen_lana,["rubro","productos"]] = ["PROCESAMIENTO TEXTIL","LANA"]
+#verifico
+df1.loc[contienen_lana,["rubro","productos"]]
+#%%
+#Lo modificamos manualmente para que rubro contemple a FRUTICULTURA
+df1.loc[124,"rubro"] = "HORTICULTURA,HORTICULTURA"
+
 #Spliteamos por ;
 atomizarColumna(df1,col,';')
 #Spliteamos por -

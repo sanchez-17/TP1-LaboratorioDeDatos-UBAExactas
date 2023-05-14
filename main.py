@@ -25,12 +25,22 @@ df5 = pd.read_csv(dicclase)
 #df1['productos'].value_counts()
 
 #a=df1.loc[df1['productos'].str.contains('HORTICULTURA',na=False)]
-
+def atomizarFila(df,col,fila,string):
+    valores_atomicos = df.loc[fila, col].split(string)
+    for valor in valores_atomicos:
+        #df.at[len(df),:] = df.loc[fila,:]
+        dfFila = pd.DataFrame([df.loc[fila,:]])
+        df=pd.concat([df,dfFila],ignore_index=True)
+        df.at[len(df)-1, col] = valor
+    #borramos la fila original    
+    df.drop([fila],inplace=True)
+    df.reset_index(drop=True, inplace=True)
 
 def atomizarFila(df,col,fila,string):
     valores_atomicos = df.loc[fila, col].split(string)
     for valor in valores_atomicos:
-        df.at[len(df),:] = df.loc[fila,:]
+        #df.at[len(df),:] = df.loc[fila,:]
+        df.loc[len(df)] = df.loc[fila,:]
         df.at[len(df)-1, col] = valor
     #borramos la fila original    
     df.drop([fila],inplace=True)

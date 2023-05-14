@@ -127,6 +127,7 @@ contienen_lana = df1.productos.str.contains("LANA") &  ~df1.productos.str.contai
 df1.loc[contienen_lana,["rubro","productos"]] = ["PROCESAMIENTO TEXTIL","LANA"]
 #verifico
 df1.loc[contienen_lana,["rubro","productos"]]
+a = df1.productos.unique()
 #%%
 #Lo modificamos manualmente para que rubro contemple a FRUTICULTURA
 df1.loc[124,"rubro"] = "HORTICULTURA,HORTICULTURA"
@@ -155,7 +156,7 @@ aux5 = df1.loc[bool4].rubro
 filtro = df1.productos.str.contains("INCULTO")
 df1.loc[filtro,'rubro'] = "AGRICULTURA"
 #Todos los productos que contengan la palabra campo, natural reemplazar el valor por inculto
-filtro = df1.productos.str.contains("CAMPO") or df1.productos.str.contains("MONTE") or df1.productos.str.contains("PASTURAS")
+filtro = df1.productos.str.contains("CAMPO") | df1.productos.str.contains("MONTE") or df1.productos.str.contains("PASTURAS")
 df1.loc[filtro,"rubro"] = "INCULTO"
 #%%
 """-------------------------------COLUMNA RUBRO--------------------------------------------"""

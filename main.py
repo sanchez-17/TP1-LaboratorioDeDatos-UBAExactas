@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Created on Mon May  8 09:14:56 2023
-
-@author: clinux01
-"""
 import pandas as pd
 import re 
 
@@ -22,20 +17,6 @@ df4 = pd.read_csv(dicdepto)
 df5 = pd.read_csv(dicclase)
 
 #%%
-#df1['productos'].value_counts()
-
-#a=df1.loc[df1['productos'].str.contains('HORTICULTURA',na=False)]
-def atomizarFila(df,col,fila,string):
-    valores_atomicos = df.loc[fila, col].split(string)
-    for valor in valores_atomicos:
-        #df.at[len(df),:] = df.loc[fila,:]
-        dfFila = pd.DataFrame([df.loc[fila,:]])
-        df=pd.concat([df,dfFila],ignore_index=True)
-        df.at[len(df)-1, col] = valor
-    #borramos la fila original    
-    df.drop([fila],inplace=True)
-    df.reset_index(drop=True, inplace=True)
-
 def atomizarFila(df,col,fila,string):
     valores_atomicos = df.loc[fila, col].split(string)
     for valor in valores_atomicos:
@@ -49,7 +30,6 @@ def atomizarFila(df,col,fila,string):
 def atomizarColumna(df,col,string):
     for i in range(len(df)):
         atomizarFila(df,col,0,string)
-
 
 def quitar_parentesis(string):
     #Quita todo lo que esta entre parentesis
@@ -81,22 +61,56 @@ def extraer_pronombres(texto):
     # Retornar el texto sin pronombres
     return texto_sin_pronombres
 
+#%% 
+"--------------Tratamiento de NaNs-------------------"
+#En columna rubro y productos vemos los casos particulares
+sin_definir="INDEFINIDO"
+#Veamos si para un producto."CAMPO INCULTO" aplica un valor en especifico para 
+#la columna rubro
+#Filtramos nans con mascara para evitar mensaje de error:
+mask = ~df1.rubro.isna()
+df1_rubro_productos_sinNan = df1.loc[df1.productos.str.contains("INCULTO") & mask,["productos","rubro"]]
+#Vemos que INCULTO refiere al rubro AGRICULTURA, redefinimos los nan
+df1_producto_inculto_conNan = df1.loc[df1.rubro.isna(),["rubro","productos"]]
+df1.at[853, 'rubro'] = sin_definir
+df1.at[908, 'rubro'] = sin_definir
+df1.at[908, 'productos'] = sin_definir
+#luego aquellas las que tanto en productos y rubro tengo nan:
+mask = df1.rubro.isna() & df1.productos.isna()
+cols = ['rubro', 'productos']
+df1.loc[mask, cols] = [sin_definir for col in cols]
+#fila 879 tiene mas de un producto, a definir mas adelante
+df1.loc[879,'rubro'] = sin_definir
+#Hay registros con error de tipo: agicultura
+df1.loc[df1.rubro == "AGICULTURA"] = "AGRICULTURA"
+#Hay campos con el valor "SIN DEFINIR",, los cambiamos a "INDEFINIDO"
+df1.loc[df1.rubro == "SIN DEFINIR"] = sin_definir
+#Aquellas filas en donde contienen puntos. En algunas 
+#funcionan como separadores, en otras no aportan nada
+terminan_en_punto = df1.rubro.str.endswith('.')
+df1.loc[terminan_en_punto,'rubro'] = df1.loc[terminan_en_punto,'rubro'].str.replace(".", "")
+#Veo cuantas siguen con puntos como separadores:2,mas adelante los separamos
+f = df1.rubro.str.contains("\.")
+aux=df1.loc[f,"rubro"]
+
+    
 #%%
 #Sacamos los nan de columna productos
-df1.dropna(inplace=True,subset=["productos"])
+#df1.dropna(inplace=True,subset=["productos"])
 
 """-------Columna productos-------------"""
+#Veo los NaN
+
 col = "productos"
 #Spliteamos por comas
-atomizarColumna(df1,'productos',', ')
+atomizarColumna(df1,col,', ')
 #Spliteamos por y
-atomizarColumna(df1,'productos',' Y ')
+atomizarColumna(df1,col,' Y ')###
 #Spliteamos por ;
-atomizarColumna(df1,'productos',';')
+atomizarColumna(df1,col,';')
 #Spliteamos por -
-atomizarColumna(df1,'productos','-')
+atomizarColumna(df1,col,'-')
 #%%
-#df1['productos'] = df1['productos'].apply(quitar_punto,args=('.'))
 
 def cambiar_todo_string(string,viejo,nuevo):
     if string.str.contains(viejo):
@@ -133,38 +147,13 @@ aux5 = df1.loc[bool4].rubro
 #Para todos aquellos productos que tengan "INCULTO", definir en columna rubro AGRICULTURA
 filtro = df1.productos.str.contains("INCULTO")
 df1.loc[filtro,'rubro'] = "AGRICULTURA"
-
+#Todos los productos que contengan la palabra campo, natural reemplazar el valor por inculto
+filtro = df1.productos.str.contains("CAMPO") or df1.productos.str.contains("MONTE") or df1.productos.str.contains("PASTURAS")
+df1.loc[filtro,"rubro"] = "INCULTO"
 #%%
 """-------------------------------COLUMNA RUBRO--------------------------------------------"""
-#Vemos los casos particulares
-sin_definir="INDEFINIDO"
-#Veamos si para un producto."CAMPO INCULTO" aplica un valor en especifico para 
-#la columna rubro
-#Filtramos nans con mascara para evitar mensaje de error:
-mask = ~df1.rubro.isna()
-df1_rubro_productos_sinNan = df1.loc[df1.productos.str.contains("INCULTO") & mask,["productos","rubro"]]
-#Vemos que INCULTO refiere al rubro AGRICULTURA, redefinimos los nan
-df1_producto_inculto_conNan = df1.loc[df1.rubro.isna(),["rubro","productos"]]
-df1.at[853, 'rubro'] = sin_definir
-df1.at[908, 'rubro'] = sin_definir
-df1.at[908, 'productos'] = sin_definir
-#luego aquellas las que tanto en productos y rubro tengo nan:
-mask = df1.rubro.isna() & df1.productos.isna()
-cols = ['rubro', 'productos']
-df1.loc[mask, cols] = [sin_definir for col in cols]
-#fila 879 tiene mas de un producto, a definir mas adelante
-df1.loc[879,'rubro'] = sin_definir
-#Hay registros con error de tipo: agicultura
-df1.loc[df1.rubro == "AGICULTURA"] = "AGRICULTURA"
-#Hay campos con el valor "SIN DEFINIR",, los cambiamos a "INDEFINIDO"
-df1.loc[df1.rubro == "SIN DEFINIR"] = sin_definir
-#Aquellas filas en donde contienen puntos. En algunas 
-#funcionan como separadores, en otras no aportan nada
-terminan_en_punto = df1.rubro.str.endswith('.')
-df1.loc[terminan_en_punto,'rubro'] = df1.loc[terminan_en_punto,'rubro'].str.replace(".", "")
-#Veo cuantas siguen con puntos como separadores:2,mas adelante los separamos
-f = df1.rubro.str.contains("\.")
-aux=df1.loc[f,"rubro"]
+
+
 #%%
 #Atomizando columna rubro
 #Genero serie booleana para encontrar lo que buscamos
@@ -214,4 +203,5 @@ df1.rubro.str.contains('-').sum() #0
 df1[col] = df1[col].apply(sacar_espacios_en_extremos)
 df1[df1.rubro.str.startswith(" ")].rubro.count() #0
 #%%
-
+"""--------------Columna establecimiento-------------------"""
+df1.loc[df1.establecimiento == "NC","establecimiento"] = sin_definir

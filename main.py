@@ -236,3 +236,21 @@ provNaN = df2['id_provincia_indec'].isna() # Retorna 9156
 
 (dptoNaN == provNaN).sum() == len(df2)  # Esto da True.
 
+#%%
+
+# PARTIENDO EL DATAFRAME 4 
+
+# PRIMERO RENOMBRAMOS 
+
+df4  = df4.rename(columns ={'codigo_departamento_indec': 'codigo_departamento'})
+df4 = df4.rename(columns ={'nombre_departamento_indec':'nombre_departamento'})
+df4  = df4.rename(columns ={'id_provincia_indec': 'provincia_id'})
+df4 = df4.rename(columns ={'nombre_provincia_indec':'nombre_provincia'})
+
+#PARTIMOS DEPARTAMENTO
+df4_departamento = df4[['codigo_departamento', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
+df4 = df4.drop('nombre_departamento',axis=1)
+
+#PARTIMOS PROVINCIA
+df4_provincia = df4[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
+df4 = df4.drop('nombre_provincia',axis=1)

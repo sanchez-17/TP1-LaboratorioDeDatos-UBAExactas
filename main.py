@@ -204,6 +204,20 @@ df1 = pd.read_csv(padron_productos_atom)
 #Aquellos que tienen categoria "Comercializadores" y no tienen rubro, le definiremos como "VENTAS"
 df1.loc[df1.rubro.str.contains("INDEFINIDO") & df1.categoria_desc.str.contains("Comercializadores"),"rubro"] = "VENTAS"
 
+#Veamos para separar por comas
+a=df1.loc[df1.rubro.str.contains(","),["rubro","productos"]]
+#No hay casos particulares, separamos:
+atomizarColumna(df1,"rubro",',')
+#Veamos para separar por punto y coma
+a=df1.loc[df1.rubro.str.contains(";"),["rubro","productos"]]
+#No hay casos particulares, separamos:
+atomizarColumna(df1,"rubro",';')
+#Veamos para separar por guiones
+a=df1.loc[df1.rubro.str.contains("-"),["rubro","productos"]]
+#No hay casos particulares, separamos:
+atomizarColumna(df1,"rubro",'-')
+a = df1.loc[df1.rubro.str.contains(" Y "),["rubro","productos"]]
+
 #%%
 #Vemos la cantidad de valores unicos para poder atomizar aquellas tuplas que asi lo requieran
 aux = df1.rubro.value_counts()

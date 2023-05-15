@@ -131,13 +131,15 @@ a = df1.productos.unique()
 #%%
 #Lo modificamos manualmente para que rubro contemple a FRUTICULTURA
 df1.loc[124,"rubro"] = "HORTICULTURA,HORTICULTURA"
-
-#Spliteamos por ;
+#%%
 atomizarColumna(df1,col,';')
-#Spliteamos por -
 atomizarColumna(df1,col,'-')
 atomizarColumna(df1,col,' + ')
 atomizarColumna(df1,col,' ? ')
+#%%
+#Quitamos puntos
+b=df1.loc[df1.productos.str.contains("\."),"productos"]
+df1.productos = df1.productos.apply(reemplazar,args=(".",""))
 #%%
 #Es posible que tengamos problemas al separar por " Y ". La tarea no es trivial. VER
 bool4 = df1.rubro.str.contains(" Y ")
@@ -174,6 +176,8 @@ df1_categoria_comercializadores = df1.loc[filtro]
 #¿Es cierto que para todas las tuplas en donde categoria_desc="Comercializadores" pasa que rubro="SIN DEFINIR"?
 len(df1_rubro_sin_definir) == len(df1_categoria_comercializadores)
 #Es verdad!
+#Definimos el rubro como "ventas"
+df1.loc[filtro,"rubro"] = "VENTAS"
 #%%
 #Vemos la cantidad de valores unicos para poder atomizar aquellas tuplas que asi lo requieran
 aux = df1.rubro.value_counts()

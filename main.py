@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import re 
-import numpy as np
 
 padron = './dataframes/padron-de-operadores-organicos-certificados.csv'
 salario = './dataframes/w_median_depto_priv_clae2.csv'
@@ -339,46 +338,24 @@ atomizarColumna(df5_letra,'letra_desc',' y ')
 sacar_espacios_columna(df5_letra,'letra_desc') # esta función elimina los espacios al principio y final de las palabras gracias a la función strip
 
 
+
+
 #%%
+#-------JUAN PABLO
 
-# Nos dimos cuenta que el df3 tiene las id de los departamentos que aparecen en el df1
-# Por lo cual debemos vincular ambos dataframe por medio de los nombres de departamento e
-# incluir en el df1, los id correspondientes a cada departamento que aparecen en df3
+df1_resultado_fails=df1_resultado[df1_resultado.departamento_id.isna()]
+#df3.loc[df3.provincia=="TIERRA DEL FUEGO","provincia"]="TIERRA DEL FUEGO, ANTÁRTIDA E ISLAS DEL ATLÁNTICO SUR"
+df3.loc[df3.provincia=="TUCUMÁN","provincia"]="TUCUMAN"
+df3.loc[df3.provincia=="RÍO NEGRO","provincia"]="RIO NEGRO"
+df3.loc[df3.provincia=="NEUQUÉN","provincia"]="NEUQUEN"
+df3.loc[df3.provincia=="ENTRE RÍOS","provincia"]="ENTRE RIOS"
+df3.loc[df3.provincia=="CÓRDOBA","provincia"]="CORDOBA"
+df3.loc[df3.provincia=="CIUDAD AUTÓNOMA DE BUENOS AIRES","provincia"]="CABA"
 
-# Primero renombramos en el df3 la columna departamento_nombre por departamento
+df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES","provincia"]="CABA"
+df1.loc[df1.departamento=="CIUDAD AUTONOMA BUENOS AIRES","departamento"]="CABA"
+df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" | df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" ,["provincia","departamento"]]=["CABA","CABA"]
 
-df3 = df3.rename(columns= {'departamento_nombre':'departamento'})
-
-# Segundo pasamos los nombres de los departamentos de ambos dataframe a mayuscula
-
-df3['departamento'] = df3['departamento'].str.upper()
-df1['departamento'] = df1['departamento'].str.upper()
-
-# Ahora vinculariamos los df pero nos damos cuenta al hacerlo que hay varios departamentos con 
-# el mismo nombre pero en distintas provincias. Como ejemplo, tenemos GENERAL ROCA que 
-# esta tanto en RÍO NEGRO como en CÓRDOBA. Por eso también tenemos que tener 
-# en cuenta las provincias a la hora de vincular los df
-
-# Dado que en el df1 las provincias estan en mayuscula, ponemos en mayusculas las de df3 y también renombramos a provincia
-
-df3 = df3.rename(columns= {'provincia_nombre':'provincia'})
-df3['provincia'] = df3['provincia'].str.upper()
-
-# Y ahora para unir las tablas. Le pedimos al df3 provincia, departamento y departamento_id, 
-# luego eliminamos los duplicados, y hacemos merge con provincia y departamento. Por lo que
-# en df1_resultado queda el df1 pero ahora con una nueva columna "departamento_id" que tiene
-# los id que le corresponden a cada departamento y provincia
-
-df3['nombre'] = df3['nombre'].str.upper()
-df1_corregido = df1 # Creamos un df1_corregido que será el que tenga los departamentos bien nombrados sin modificar el df1
-
-for departamento in df1_corregido['departamento']:
-    if departamento in df3['nombre'].values: # Verificar si hay coincidencia en la columna2 de df2
-        nombre_departamento = df3.loc[df3['nombre'] == departamento, 'departamento'].values[0] # Obtener el valor correspondiente de columna3 de df2
-        df1_corregido.loc[df1_corregido['departamento'] == departamento, 'departamento'] = nombre_departamento  # Reemplazar el valor en columna1_df1 de df1
-        
-
-df1_corregido= df1_corregido.merge(df3[['provincia_id','departamento','departamento_id']].drop_duplicates() , on=['provincia_id','departamento'], how='left')
-
-# Y por último ponemos los id al lado de los departamentos
+df3_depYProv=df3[['provincia_id','provincia','departamento_id', 'departamento']].drop_duplicates().reset_index(drop=True)
+df1_depYProv=df1[['provincia_id','provincia','departamento']].drop_duplicates().reset_index(drop=True)
 df1_corregido.insert(4,'departamento_id',df1_corregido.pop('departamento_id'))

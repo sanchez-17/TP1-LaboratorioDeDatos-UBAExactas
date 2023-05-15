@@ -424,16 +424,27 @@ df3['provincia'] = df3['provincia'].str.upper()
 # en df1_resultado queda el df1 pero ahora con una nueva columna "departamento_id" que tiene
 # los id que le corresponden a cada departamento y provincia
 
-df1_resultado= df1.merge(df3[['provincia','departamento','departamento_id']].drop_duplicates() , on=['provincia','departamento'], how='left')
+df3['nombre'] = df3['nombre'].str.upper()
+df1_corregido = df1 # Creamos un df1_corregido que será el que tenga los departamentos bien nombrados sin modificar el df1
+
+for departamento in df1_corregido['departamento']:
+    if departamento in df3['nombre'].values: # Verificar si hay coincidencia en la columna2 de df2
+        nombre_departamento = df3.loc[df3['nombre'] == departamento, 'departamento'].values[0] # Obtener el valor correspondiente de columna3 de df2
+        df1_corregido.loc[df1_corregido['departamento'] == departamento, 'departamento'] = nombre_departamento  # Reemplazar el valor en columna1_df1 de df1
+
+del departamento # para que no queden variables innecesarias
+
+df1_corregido= df1_corregido.merge(df3[['provincia_id','departamento','departamento_id']].drop_duplicates() , on=['provincia_id','departamento'], how='left')
 
 # Y por último ponemos los id al lado de los departamentos
 
-df1_resultado.insert(4,'departamento_id',df1_resultado.pop('departamento_id'))
+df1_corregido.insert(4,'departamento_id',df1_corregido.pop('departamento_id'))
 
 #%%
 #-------JUAN PABLO
 
-df1_resultado_fails=df1_resultado[df1_resultado.departamento_id.isna()]
+df1_corregido_fails=df1_corregido[df1_corregido.departamento_id.isna()]
+
 #df3.loc[df3.provincia=="TIERRA DEL FUEGO","provincia"]="TIERRA DEL FUEGO, ANTÁRTIDA E ISLAS DEL ATLÁNTICO SUR"
 df3.loc[df3.provincia=="TUCUMÁN","provincia"]="TUCUMAN"
 df3.loc[df3.provincia=="RÍO NEGRO","provincia"]="RIO NEGRO"
@@ -448,3 +459,4 @@ df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" | df1.provincia=="CIUDAD A
 
 df3_depYProv=df3[['provincia_id','provincia','departamento_id', 'departamento']].drop_duplicates().reset_index(drop=True)
 df1_depYProv=df1[['provincia_id','provincia','departamento']].drop_duplicates().reset_index(drop=True)
+

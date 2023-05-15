@@ -282,24 +282,27 @@ provNaN = df2['id_provincia_indec'].isna() # Retorna 9156
 # en la otra.
 
 (dptoNaN == provNaN).sum() == len(df2)  # Esto da True.
+#%%
+df3 = df3.rename(columns ={'provincia_nombre':'nombre_provincia'})
+df3 = df3.rename(columns ={'municipio_nombre':'nombre_municipio'})
+df3 = df3.rename(columns ={'departamento_nombre':'nombre_departamento'})
 
 #%%
 
 #TRATAMIENTO DE NANS
-df3.loc[df3.departamento_nombre.isna(),"departamento_nombre"]=sin_definir
+
+df3_dict=df3
+
+df3.loc[df3.nombre_departamento.isna(),"nombre_departamento"]=sin_definir
 df3.loc[df3.funcion.isna(),"funcion"]=sin_definir
-df3.loc[df3.municipio_nombre.isna(),"municipio_nombre"]=sin_definir
+df3.loc[df3.nombre_municipio.isna(),"nombre_municipio"]=sin_definir
 df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
 df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
 
-df3 = df3.rename(columns ={'provincia_nombre':'nombre_provincia'})
-df3 = df3.rename(columns ={'municipio_nombre':'nombre_municipio'})
-df3 = df3.rename(columns ={'departamento_nombre':'nombre_departamento'})
-df3_dict=df3
-
 #PARTIMOS PROVINCIA
 df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
-df3_provincia==df4_provincia
+#correccion para que se asemeje a df4
+df3_provincia=df3_provincia.sort_values(by=['provincia_id']) 
 df3_dict = df3_dict.drop('nombre_provincia',axis=1)
 
 #PARTIMOS MUNICIPIO
@@ -328,11 +331,19 @@ df4 = df4.rename(columns ={'nombre_provincia_indec':'nombre_provincia'})
 df4_departamento = df4[['codigo_departamento', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
 
 #PARTIMOS PROVINCIA
+
+#correcciones para que sea igual a df3
+df4.loc[df4.nombre_provincia=="Tierra Del Fuego","nombre_provincia"]="Tierra del Fuego, Antártida e Islas del Atlántico Sur"
+df4.loc[df4.nombre_provincia=="CABA","nombre_provincia"]="Ciudad Autónoma de Buenos Aires"
 df4_provincia = df4[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
 
 # df4_dict es la versión normalizada de df4 que se conecta mediante la PK con df4_departamento y df4_provincia
 df4_dict = df4.drop('nombre_departamento',axis=1)
 df4_dict = df4_dict.drop('nombre_provincia',axis=1)
+
+
+#%% como dataframe/tabla de provincia se usa df4_provincia con las siguientes correcciones
+
 
 #%%
 
@@ -391,7 +402,8 @@ sacar_espacios_columna(df5_letra,'letra_desc') # esta función elimina los espac
 
 # Primero renombramos en el df3 la columna departamento_nombre por departamento
 
-df3 = df3.rename(columns= {'departamento_nombre':'departamento'})
+df3 = df3.rename(columns= {'nombre_departamento':'departamento'})
+df3 = df3.rename(columns= {'nombre_provincia':'provincia'})
 
 # Segundo pasamos los nombres de los departamentos de ambos dataframe a mayuscula
 
@@ -417,3 +429,22 @@ df1_resultado= df1.merge(df3[['provincia','departamento','departamento_id']].dro
 # Y por último ponemos los id al lado de los departamentos
 
 df1_resultado.insert(4,'departamento_id',df1_resultado.pop('departamento_id'))
+
+#%%
+#-------JUAN PABLO
+
+df1_resultado_fails=df1_resultado[df1_resultado.departamento_id.isna()]
+#df3.loc[df3.provincia=="TIERRA DEL FUEGO","provincia"]="TIERRA DEL FUEGO, ANTÁRTIDA E ISLAS DEL ATLÁNTICO SUR"
+df3.loc[df3.provincia=="TUCUMÁN","provincia"]="TUCUMAN"
+df3.loc[df3.provincia=="RÍO NEGRO","provincia"]="RIO NEGRO"
+df3.loc[df3.provincia=="NEUQUÉN","provincia"]="NEUQUEN"
+df3.loc[df3.provincia=="ENTRE RÍOS","provincia"]="ENTRE RIOS"
+df3.loc[df3.provincia=="CÓRDOBA","provincia"]="CORDOBA"
+df3.loc[df3.provincia=="CIUDAD AUTÓNOMA DE BUENOS AIRES","provincia"]="CABA"
+
+df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES","provincia"]="CABA"
+df1.loc[df1.departamento=="CIUDAD AUTONOMA BUENOS AIRES","departamento"]="CABA"
+df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" | df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" ,["provincia","departamento"]]=["CABA","CABA"]
+
+df3_depYProv=df3[['provincia_id','provincia','departamento_id', 'departamento']].drop_duplicates().reset_index(drop=True)
+df1_depYProv=df1[['provincia_id','provincia','departamento']].drop_duplicates().reset_index(drop=True)

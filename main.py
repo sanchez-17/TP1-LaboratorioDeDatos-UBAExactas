@@ -193,7 +193,7 @@ aux5 = df1.loc[bool4].rubro
 filtro = df1.productos.str.contains("INCULTO")
 df1.loc[filtro,'rubro'] = "AGRICULTURA"
 #Todos los productos que contengan la palabra campo, natural reemplazar el valor por inculto
-filtro = df1.productos.str.contains("CAMPO") | df1.productos.str.contains("MONTE") or df1.productos.str.contains("PASTURAS")
+filtro = df1.productos.str.contains("CAMPO") | df1.productos.str.contains("MONTE") | df1.productos.str.contains("PASTURAS")
 df1.loc[filtro,"rubro"] = "INCULTO"
 #%%
 """-------------------------------COLUMNA RUBRO--------------------------------------------"""

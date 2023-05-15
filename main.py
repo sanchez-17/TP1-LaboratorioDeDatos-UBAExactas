@@ -444,6 +444,7 @@ df1_corregido.insert(4,'departamento_id',df1_corregido.pop('departamento_id'))
 #-------JUAN PABLO
 
 df1_corregido_fails=df1_corregido[df1_corregido.departamento_id.isna()]
+
 #df3.loc[df3.provincia=="TIERRA DEL FUEGO","provincia"]="TIERRA DEL FUEGO, ANTÁRTIDA E ISLAS DEL ATLÁNTICO SUR"
 df3.loc[df3.provincia=="TUCUMÁN","provincia"]="TUCUMAN"
 df3.loc[df3.provincia=="RÍO NEGRO","provincia"]="RIO NEGRO"
@@ -458,3 +459,4 @@ df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" | df1.provincia=="CIUDAD A
 
 df3_depYProv=df3[['provincia_id','provincia','departamento_id', 'departamento']].drop_duplicates().reset_index(drop=True)
 df1_depYProv=df1[['provincia_id','provincia','departamento']].drop_duplicates().reset_index(drop=True)
+

@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import re 
+from unidecode import unidecode
 
 
 padron = './dataframes/padron-de-operadores-organicos-certificados.csv'
@@ -49,6 +50,9 @@ def sacar_espacios_en_extremos(string):
 
 def sacar_espacios_columna(df,columna):
     df[columna] = df[columna].str.strip()
+    
+def quitar_acentos(palabra):
+    return unidecode(palabra)
 
 def cuantos_nan(df):
     nan_cant = df.isna().sum()
@@ -311,7 +315,7 @@ df3 = df3.rename(columns ={'departamento_nombre':'nombre_departamento'})
 df3_dict=df3
 
 df3.loc[df3.nombre_departamento.isna(),"nombre_departamento"]=sin_definir
-df3.loc[df3.funcion.isna(),"funcion"]=sin_definir
+df3.loc[df3.funcion.isna(),"funcion"]='SIN FUNCIÓN'
 df3.loc[df3.nombre_municipio.isna(),"nombre_municipio"]=sin_definir
 df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
 df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
@@ -412,12 +416,14 @@ sacar_espacios_columna(df5_letra,'letra_desc') # esta función elimina los espac
 
 
 #%%
+"""
+Nos dimos cuenta que el df3 tiene las id de los departamentos que aparecen en el df1. 
+Por lo cual debemos vincular ambos dataframe por medio de los nombres de departamento e incluir en el df1 
+los id correspondientes a cada departamento que aparecen en df3.
+"""
+# PASOS
 
-# Nos dimos cuenta que el df3 tiene las id de los departamentos que aparecen en el df1
-# Por lo cual debemos vincular ambos dataframe por medio de los nombres de departamento e
-# incluir en el df1, los id correspondientes a cada departamento que aparecen en df3
-
-# Primero renombramos en el df3 la columna departamento_nombre por departamento
+# Primero renombramos en el df3 las columnas para que matcheen con las del df1
 
 df3 = df3.rename(columns= {'nombre_departamento':'departamento'})
 df3 = df3.rename(columns= {'nombre_provincia':'provincia'})
@@ -427,35 +433,65 @@ df3 = df3.rename(columns= {'nombre_provincia':'provincia'})
 df3['departamento'] = df3['departamento'].str.upper()
 df1['departamento'] = df1['departamento'].str.upper()
 
-# Ahora vinculariamos los df pero nos damos cuenta al hacerlo que hay varios departamentos con 
-# el mismo nombre pero en distintas provincias. Como ejemplo, tenemos GENERAL ROCA que 
-# esta tanto en RÍO NEGRO como en CÓRDOBA. Por eso también tenemos que tener 
-# en cuenta las provincias a la hora de vincular los df
+"""
+Ahora vinculariamos los df pero nos damos cuenta al hacerlo que hay varios departamentos con el mismo nombre 
+pero en distintas provincias. Como ejemplo, tenemos GENERAL ROCA que esta tanto en RÍO NEGRO como en CÓRDOBA.
+Por eso también tenemos que tener en cuenta las provincias a la hora de vincular los df
+"""
 
-# Dado que en el df1 las provincias estan en mayuscula, ponemos en mayusculas las de df3
+# Tercero. Dado que en el df1 las provincias estan en mayuscula, ponemos en mayusculas las de df3
 
 df3['provincia'] = df3['provincia'].str.upper()
 
-# Y ahora para unir las tablas. Le pedimos al df3 provincia, departamento y departamento_id, 
-# luego eliminamos los duplicados, y hacemos merge con provincia y departamento. Por lo que
-# en df1_resultado queda el df1 pero ahora con una nueva columna "departamento_id" que tiene
-# los id que le corresponden a cada departamento y provincia
+"""
+Nuevamente hariamos un merge en este momento pero existe otro problema. Los nombres de departamentos en df1 a veces aparecen
+con nombres de sus localidades, las cuales estan en el df3. Entonces, podemos hacer un for que busque si coinciden el nombre
+que aparece en df1 con los nombres de localidades de df3, y si matchean cambiar ese nombre de localidad que esta en df1 por
+el verdadero nombre de departamento que le corresponde
+"""
+
+# Cuarto. Ponemos en mayusculas los nombres y hacemos una copia del df1.
 
 df3['nombre'] = df3['nombre'].str.upper()
-df1_corregido = df1 # Creamos un df1_corregido que será el que tenga los departamentos bien nombrados sin modificar el df1
+df1_corregido = df1.copy() # Creamos un df1_corregido que será el que tenga los departamentos bien nombrados sin modificar el df1
+
+# Quinto. Existe un único valor NaN en la fila 60. Para corroborar podemos usar df3.loc[df3.departamento.isna(),'departamento']
+# Lo corregimos a mano
+
+df3.loc[60,'departamento'] = sin_definir
+
+# Sexto. Luego aplicamos quitar_acentos en los nombres de departamento del df1, df3 y la columna 'nombre' del df3
+# Esto es para que sean más faciles de relacionar entre sí por más que perdamos calidad de escritura
+
+df3['departamento'] = df3['departamento'].apply(quitar_acentos)
+df1_corregido['departamento'] = df1_corregido['departamento'].apply(quitar_acentos)
+df3['nombre'] = df3['nombre'].apply(quitar_acentos)
+
+# Séptimo. Podemos hacer un for que recorra cada departamento del df1 y lo compare con los nombres de localidades que aparecen en
+# df3 y si llega a encontrar un match, eso significa que ese departamento del df1 esta mal y es una localidad en realidad.
+# A continuación buscamos en la columna 'departamento' del df3 en la misma fila que hizo match y reemplazamos ese valor en el df1
 
 for departamento in df1_corregido['departamento']:
-    if departamento in df3['nombre'].values: # Verificar si hay coincidencia en la columna2 de df2
-        nombre_departamento = df3.loc[df3['nombre'] == departamento, 'departamento'].values[0] # Obtener el valor correspondiente de columna3 de df2
-        df1_corregido.loc[df1_corregido['departamento'] == departamento, 'departamento'] = nombre_departamento  # Reemplazar el valor en columna1_df1 de df1
+    if departamento in df3['nombre'].values: # Verificar si hay coincidencia en la df3['nombre']
+        nombre_departamento = df3.loc[df3['nombre'] == departamento, 'departamento'].values[0] # Obtener el valor correspondiente de df3['departamento']
+        df1_corregido.loc[df1_corregido['departamento'] == departamento, 'departamento'] = nombre_departamento  # Reemplazar el valor en df1['departamento']
 
 del departamento # para que no queden variables innecesarias
 
+# Octavo. Hacemos el merge
+
 df1_corregido= df1_corregido.merge(df3[['provincia_id','departamento','departamento_id']].drop_duplicates() , on=['provincia_id','departamento'], how='left')
 
-# Y por último ponemos los id al lado de los departamentos
+# Noveno. Por último ponemos los id al lado de los departamentos
 
 df1_corregido.insert(4,'departamento_id',df1_corregido.pop('departamento_id'))
+
+"""
+En total df1_corregido tiene 435 NaNs. Si bien todavia quedan esa cantidad de NaNs, originalmente el df1 no tenia IDs de 
+departamentos, y ahora tiene 960 filas que si tienen id de departamento.
+Esto es verificable con el siguiente comando.
+"""
+df1_corregido.loc[df1_corregido.departamento_id.isna(),'departamento_id']
 
 #%%
 #-------JUAN PABLO

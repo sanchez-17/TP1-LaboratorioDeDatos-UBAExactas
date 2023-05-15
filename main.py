@@ -3,6 +3,7 @@
 import pandas as pd
 import re 
 
+
 padron = './dataframes/padron-de-operadores-organicos-certificados.csv'
 salario = './dataframes/w_median_depto_priv_clae2.csv'
 loccensales = './dataframes/localidades-censales.csv'
@@ -16,12 +17,16 @@ df4 = pd.read_csv(dicdepto)
 df5 = pd.read_csv(dicclase)
 
 #%%
+def crear_y_añadir_fila(df,fila_old,col,valor):
+    df.loc[len(df)] = df.loc[fila_old,:]
+    df.at[len(df)-1, col] = valor
+
 def atomizarFila(df,col,fila,string):
     valores_atomicos = df.loc[fila, col].split(string)
     for valor in valores_atomicos:
-        #df.at[len(df),:] = df.loc[fila,:]
-        df.loc[len(df)] = df.loc[fila,:]
-        df.at[len(df)-1, col] = valor
+        crear_y_añadir_fila(df, fila,col, valor)
+        #df.loc[len(df)] = df.loc[fila,:]
+        #df.at[len(df)-1, col] = valor
     #borramos la fila original    
     df.drop([fila],inplace=True)
     df.reset_index(drop=True, inplace=True)
@@ -79,8 +84,7 @@ df1.at[908, 'rubro'] = sin_definir
 df1.at[908, 'productos'] = sin_definir
 #luego aquellas las que tanto en productos y rubro tengo nan:
 mask = df1.rubro.isna() & df1.productos.isna()
-cols = ['rubro', 'productos']
-df1.loc[mask, cols] = [sin_definir for col in cols]
+df1.loc[mask, ['rubro', 'productos']] = [sin_definir for col in ['rubro', 'productos']]
 #fila 879 tiene mas de un producto, a definir mas adelante
 df1.loc[879,'rubro'] = sin_definir
 #Hay registros con error de tipo: agicultura
@@ -94,45 +98,84 @@ df1.loc[terminan_en_punto,'rubro'] = df1.loc[terminan_en_punto,'rubro'].str.repl
 #Veo cuantas siguen con puntos como separadores:2,mas adelante los separamos
 f = df1.rubro.str.contains("\.")
 aux=df1.loc[f,"rubro"]
-
-    
 #%%
-#Sacamos los nan de columna productos
-#df1.dropna(inplace=True,subset=["productos"])
+prod_con_parentesis = df1.loc[df1.productos.str.contains("\("),"productos"].unique()
+#hay 1 valor con "HORTICULTURA: (RAIZ, HOJAS, FRUTOS) - FRUTALES: (CAROZO, PEPITA, CITRI ..."
+con_comas_en_parentesis = df1.productos.str.contains("RAIZ, HOJAS, FRUTOS")
+vista = df1.loc[con_comas_en_parentesis,:]
+#Lo modificamos manualmente para que rubro contemple a FRUTICULTURA, y productos no tenga parentesis
+crear_y_añadir_fila(df1,124,"rubro","HORTICULTURA")
+#nos falta modificar su columna productos a esta fila creada
+df1.at[len(df1)-1, "productos"] = "RAIZ,HOJAS,FRUTOS"
 
-"""-------Columna productos-------------"""
-#Veo los NaN
+crear_y_añadir_fila(df1,124,"rubro","FRUTICULTURA")
+#nos falta midificar su columna productos a esta fila creada
+df1.at[len(df1)-1, "productos"] = "CAROZO,PEPITA,CITRICOS"
+#Borramos la fila 124
+df1.drop([124],inplace=True)
+df1.reset_index(drop=True, inplace=True)
+#hay 3 valores con "(CARNE Y LANA)"
+con_carne_lana = df1.productos.str.contains("CARNE Y LANA")
+df1.loc[con_carne_lana,"productos"] = "CARNE BOVINA,CARNE OVINA,LANA"
 
 col = "productos"
+df1.productos = df1.productos.apply(quitar_parentesis)
 #Spliteamos por comas
-atomizarColumna(df1,col,', ')
-#Spliteamos por y
-atomizarColumna(df1,col,' Y ')###
-#Spliteamos por ;
-atomizarColumna(df1,col,';')
-#Spliteamos por -
-atomizarColumna(df1,col,'-')
+atomizarColumna(df1,col,',')
+#verificamos si siguen habiendo parentesis
+a=df1.loc[df1.productos.str.contains("\("),"productos"] #0
+
+#Se decide que lana corresponde al rubro procesamiento textil y los distintos tipos de lanas se unifican en un solo producto: "lana". Excepto 3 en donde sus valores son "TOPS DE LANA" o "BLOUSSE" que quedan en sus respectivos rubros
+contienen_lana = df1.productos.str.contains("LANA") &  ~df1.productos.str.contains("AVELLANA") & ~df1.productos.str.contains("BLOUSSE") & ~df1.productos.str.contains("TOPS DE LANA")
+df1.loc[contienen_lana,["rubro","productos"]] = ["PROCESAMIENTO TEXTIL","LANA"]
+#verifico
+df1.loc[contienen_lana,["rubro","productos"]]
+a = df1.productos.unique()
 #%%
+#Lo modificamos manualmente para que rubro contemple a FRUTICULTURA
+df1.loc[124,"rubro"] = "HORTICULTURA,HORTICULTURA"
+#%%
+atomizarColumna(df1,col,';')
+atomizarColumna(df1,col,'-')
+atomizarColumna(df1,col,' + ')
+atomizarColumna(df1,col,' ? ')
+#%%
+#Quitamos puntos
+df1.productos = df1.productos.apply(reemplazar,args=(".",""))
 
-def cambiar_todo_string(string,viejo,nuevo):
-    if string.str.contains(viejo):
-        return nuevo
+con_campo_monte_o_pasturas = df1.productos.str.contains("CAMPO") | df1.productos.str.contains("MONTE") | df1.productos.str.contains("PASTURAS")
+#Definimos el producto como "INCULTO" y rubro "AGRICULTURA"
+df1.loc[con_campo_monte_o_pasturas,"productos"] = "INCULTO"
+df1.loc[con_campo_monte_o_pasturas,'rubro'] = "AGRICULTURA"
 
-#df1.loc[df['productos']]
-
-
-
-""" separar """
-
-df_productos = df1.loc[:,['productos','razón social','establecimiento']]
-df_productos.dropna(inplace=True,subset="productos")
-atomizarColumna(df_productos,'productos', ',')
-df1.drop('productos',axis=1)
-"""
-productos separar por:
-    ?
-    +
-"""
+#%%
+#Algunos registros se cambian manualmente, pues si atomizamos por " y " daran problemas de calidad
+con_y = df1.productos.str.contains(" Y ")
+ver_registros= df1.loc[con_y,["rubro","productos"]]
+df1.loc[2775,["rubro","productos"]] = ["ELABORACION","PULPA DE MANZANA Y JUGO DE MANZANA Y MANZANA DESHIDRATADA"]
+df1.loc[3200,["rubro","productos"]] = ["PROCESAMIENTO","CEREALES Y OLEAGINOSAS"]
+df1.loc[2880,"productos"] = "JUGO DE LIMON Y ACEITE DE LIMON"
+df1.loc[3254,["rubro","productos"]] = ["ALMACENAMIENTO Y FRIO","JUGO CONCENTRADO DE PERA Y PURE DE PERA"]
+df1.loc[2781,["rubro","productos"]] = ["ALMACENAMIENTO Y FRIO","JUGO CONCENTRADO DE PERA Y JUGO CONCENTRADO DE MANZANA"]
+df1.loc[2246,["rubro","productos"]] = ["FRUTICULTURA-HORTICULTURA","FRUTAS Y HORTICULTURA"]
+df1.loc[2219,"rubro"] = "FRUTICULTURA-HORTICULTURA"
+df1.loc[3186,["rubro","productos"]] = ["VENTAS","MANI"]
+df1.loc[3165,["rubro","productos"]] = ["VENTAS","CEREALES Y OLEAGINOSAS"]
+df1.loc[1576,"productos"] = "CEREALES Y OLEAGINOSAS"
+df1.loc[2768,["rubro","productos"]] = ["ELABORACION","JUGO CONCENTRADO DE PERA Y JUGO CONCENTRADO DE MANZANA"]
+df1.loc[2737,["rubro","productos"]] = ["ELABORACION","JUGO CONCENTRADO DE PERA Y JUGO CONCENTRADO DE MANZANA"]
+df1.loc[2782,"rubro"] = "FRUTICULTURA"
+df1.loc[2786,"rubro"] = "FRUTICULTURA"
+df1.loc[2221,"rubro"] = "APICULTURA"
+df1.loc[2878,"rubro"] = "APICULTURA"
+df1.loc[2339,"rubro"] = "APICULTURA"
+df1.loc[3166,"rubro"] = "APICULTURA"
+df1.loc[3276,"rubro"] = "APICULTURA"
+#Atomizamos
+atomizarColumna(df1,col,' Y ')
+#Limpiamos los espacios en blanco
+df1.productos = df1.productos.apply(sacar_espacios_en_extremos)
+#%%
 #Es posible que tengamos problemas al separar por " Y ". La tarea no es trivial. VER
 bool4 = df1.rubro.str.contains(" Y ")
 aux4 = df1.loc[bool4].rubro
@@ -150,7 +193,7 @@ aux5 = df1.loc[bool4].rubro
 filtro = df1.productos.str.contains("INCULTO")
 df1.loc[filtro,'rubro'] = "AGRICULTURA"
 #Todos los productos que contengan la palabra campo, natural reemplazar el valor por inculto
-filtro = df1.productos.str.contains("CAMPO") or df1.productos.str.contains("MONTE") or df1.productos.str.contains("PASTURAS")
+filtro = df1.productos.str.contains("CAMPO") | df1.productos.str.contains("MONTE") | df1.productos.str.contains("PASTURAS")
 df1.loc[filtro,"rubro"] = "INCULTO"
 #%%
 """-------------------------------COLUMNA RUBRO--------------------------------------------"""
@@ -168,6 +211,8 @@ df1_categoria_comercializadores = df1.loc[filtro]
 #¿Es cierto que para todas las tuplas en donde categoria_desc="Comercializadores" pasa que rubro="SIN DEFINIR"?
 len(df1_rubro_sin_definir) == len(df1_categoria_comercializadores)
 #Es verdad!
+#Definimos el rubro como "ventas"
+df1.loc[filtro,"rubro"] = "VENTAS"
 #%%
 #Vemos la cantidad de valores unicos para poder atomizar aquellas tuplas que asi lo requieran
 aux = df1.rubro.value_counts()
@@ -237,24 +282,27 @@ provNaN = df2['id_provincia_indec'].isna() # Retorna 9156
 # en la otra.
 
 (dptoNaN == provNaN).sum() == len(df2)  # Esto da True.
+#%%
+df3 = df3.rename(columns ={'provincia_nombre':'nombre_provincia'})
+df3 = df3.rename(columns ={'municipio_nombre':'nombre_municipio'})
+df3 = df3.rename(columns ={'departamento_nombre':'nombre_departamento'})
 
 #%%
 
 #TRATAMIENTO DE NANS
-df3.loc[df3.departamento_nombre.isna(),"departamento_nombre"]=sin_definir
+
+df3_dict=df3
+
+df3.loc[df3.nombre_departamento.isna(),"nombre_departamento"]=sin_definir
 df3.loc[df3.funcion.isna(),"funcion"]=sin_definir
-df3.loc[df3.municipio_nombre.isna(),"municipio_nombre"]=sin_definir
+df3.loc[df3.nombre_municipio.isna(),"nombre_municipio"]=sin_definir
 df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
 df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
 
-df3 = df3.rename(columns ={'provincia_nombre':'nombre_provincia'})
-df3 = df3.rename(columns ={'municipio_nombre':'nombre_municipio'})
-df3 = df3.rename(columns ={'departamento_nombre':'nombre_departamento'})
-df3_dict=df3
-
 #PARTIMOS PROVINCIA
 df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
-df3_provincia==df4_provincia
+#correccion para que se asemeje a df4
+df3_provincia=df3_provincia.sort_values(by=['provincia_id']) 
 df3_dict = df3_dict.drop('nombre_provincia',axis=1)
 
 #PARTIMOS MUNICIPIO
@@ -283,11 +331,19 @@ df4 = df4.rename(columns ={'nombre_provincia_indec':'nombre_provincia'})
 df4_departamento = df4[['codigo_departamento', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
 
 #PARTIMOS PROVINCIA
+
+#correcciones para que sea igual a df3
+df4.loc[df4.nombre_provincia=="Tierra Del Fuego","nombre_provincia"]="Tierra del Fuego, Antártida e Islas del Atlántico Sur"
+df4.loc[df4.nombre_provincia=="CABA","nombre_provincia"]="Ciudad Autónoma de Buenos Aires"
 df4_provincia = df4[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
 
 # df4_dict es la versión normalizada de df4 que se conecta mediante la PK con df4_departamento y df4_provincia
 df4_dict = df4.drop('nombre_departamento',axis=1)
 df4_dict = df4_dict.drop('nombre_provincia',axis=1)
+
+
+#%% como dataframe/tabla de provincia se usa df4_provincia con las siguientes correcciones
+
 
 #%%
 
@@ -338,12 +394,56 @@ atomizarColumna(df5_letra,'letra_desc',' y ')
 sacar_espacios_columna(df5_letra,'letra_desc') # esta función elimina los espacios al principio y final de las palabras gracias a la función strip
 
 
+#%%
 
+# Nos dimos cuenta que el df3 tiene las id de los departamentos que aparecen en el df1
+# Por lo cual debemos vincular ambos dataframe por medio de los nombres de departamento e
+# incluir en el df1, los id correspondientes a cada departamento que aparecen en df3
+
+# Primero renombramos en el df3 la columna departamento_nombre por departamento
+
+df3 = df3.rename(columns= {'nombre_departamento':'departamento'})
+df3 = df3.rename(columns= {'nombre_provincia':'provincia'})
+
+# Segundo pasamos los nombres de los departamentos de ambos dataframe a mayuscula
+
+df3['departamento'] = df3['departamento'].str.upper()
+df1['departamento'] = df1['departamento'].str.upper()
+
+# Ahora vinculariamos los df pero nos damos cuenta al hacerlo que hay varios departamentos con 
+# el mismo nombre pero en distintas provincias. Como ejemplo, tenemos GENERAL ROCA que 
+# esta tanto en RÍO NEGRO como en CÓRDOBA. Por eso también tenemos que tener 
+# en cuenta las provincias a la hora de vincular los df
+
+# Dado que en el df1 las provincias estan en mayuscula, ponemos en mayusculas las de df3
+
+df3['provincia'] = df3['provincia'].str.upper()
+
+# Y ahora para unir las tablas. Le pedimos al df3 provincia, departamento y departamento_id, 
+# luego eliminamos los duplicados, y hacemos merge con provincia y departamento. Por lo que
+# en df1_resultado queda el df1 pero ahora con una nueva columna "departamento_id" que tiene
+# los id que le corresponden a cada departamento y provincia
+
+df3['nombre'] = df3['nombre'].str.upper()
+df1_corregido = df1 # Creamos un df1_corregido que será el que tenga los departamentos bien nombrados sin modificar el df1
+
+for departamento in df1_corregido['departamento']:
+    if departamento in df3['nombre'].values: # Verificar si hay coincidencia en la columna2 de df2
+        nombre_departamento = df3.loc[df3['nombre'] == departamento, 'departamento'].values[0] # Obtener el valor correspondiente de columna3 de df2
+        df1_corregido.loc[df1_corregido['departamento'] == departamento, 'departamento'] = nombre_departamento  # Reemplazar el valor en columna1_df1 de df1
+
+del departamento # para que no queden variables innecesarias
+
+df1_corregido= df1_corregido.merge(df3[['provincia_id','departamento','departamento_id']].drop_duplicates() , on=['provincia_id','departamento'], how='left')
+
+# Y por último ponemos los id al lado de los departamentos
+
+df1_corregido.insert(4,'departamento_id',df1_corregido.pop('departamento_id'))
 
 #%%
 #-------JUAN PABLO
 
-df1_resultado_fails=df1_resultado[df1_resultado.departamento_id.isna()]
+df1_corregido_fails=df1_corregido[df1_corregido.departamento_id.isna()]
 #df3.loc[df3.provincia=="TIERRA DEL FUEGO","provincia"]="TIERRA DEL FUEGO, ANTÁRTIDA E ISLAS DEL ATLÁNTICO SUR"
 df3.loc[df3.provincia=="TUCUMÁN","provincia"]="TUCUMAN"
 df3.loc[df3.provincia=="RÍO NEGRO","provincia"]="RIO NEGRO"
@@ -358,4 +458,3 @@ df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" | df1.provincia=="CIUDAD A
 
 df3_depYProv=df3[['provincia_id','provincia','departamento_id', 'departamento']].drop_duplicates().reset_index(drop=True)
 df1_depYProv=df1[['provincia_id','provincia','departamento']].drop_duplicates().reset_index(drop=True)
-df1_corregido.insert(4,'departamento_id',df1_corregido.pop('departamento_id'))

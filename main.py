@@ -141,6 +141,25 @@ atomizarColumna(df1,col,' ? ')
 b=df1.loc[df1.productos.str.contains("\."),"productos"]
 df1.productos = df1.productos.apply(reemplazar,args=(".",""))
 #%%
+<<<<<<< Updated upstream
+=======
+
+#df1.loc[df['productos']]
+
+
+
+""" separar """
+
+df_productos = df1.loc[:,['productos','razón social','establecimiento']]
+df_productos.dropna(inplace=True,subset="productos")
+atomizarColumna(df_productos,'productos', ',')
+df1.drop('productos',axis=1)
+"""
+productos separar por:
+    ?
+    +
+"""
+>>>>>>> Stashed changes
 #Es posible que tengamos problemas al separar por " Y ". La tarea no es trivial. VER
 bool4 = df1.rubro.str.contains(" Y ")
 aux4 = df1.loc[bool4].rubro

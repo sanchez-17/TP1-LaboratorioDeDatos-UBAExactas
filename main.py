@@ -47,6 +47,9 @@ def reemplazar(string,cadena,reemplazo):
 def sacar_espacios_en_extremos(string):
     return string.strip()
 
+def sacar_espacios_columna(df,columna):
+    df[columna] = df[columna].str.strip()
+
 def cuantos_nan(df):
     nan_cant = df.isna().sum()
     nan_porcentaje = (nan_cant / len(df)) * 100
@@ -190,7 +193,7 @@ aux5 = df1.loc[bool4].rubro
 filtro = df1.productos.str.contains("INCULTO")
 df1.loc[filtro,'rubro'] = "AGRICULTURA"
 #Todos los productos que contengan la palabra campo, natural reemplazar el valor por inculto
-filtro = df1.productos.str.contains("CAMPO") | df1.productos.str.contains("MONTE") or df1.productos.str.contains("PASTURAS")
+filtro = df1.productos.str.contains("CAMPO") | df1.productos.str.contains("MONTE") | df1.productos.str.contains("PASTURAS")
 df1.loc[filtro,"rubro"] = "INCULTO"
 #%%
 """-------------------------------COLUMNA RUBRO--------------------------------------------"""
@@ -355,14 +358,10 @@ df5_letra = df5[['letra', 'letra_desc']].drop_duplicates().reset_index(drop=True
 df5_dict = df5.drop('clae2_desc',axis=1)
 df5_dict = df5_dict.drop('letra_desc',axis=1)
 
-""" no funciona bien este codigo, puede tomarse como descripción y por lo tanto no ser necesario normalizar
-
-# Bien ahora solo falta normalizar df5_clae2 y df5_letra
-
+""" es dificil normalizar df5_clae2 ya que las descripciones estan pensadas como string y no para separarse en valores atomizados.
 # NORMALIZAMOS df5_clae2
 
 atomizarColumna(df5_clae2,'clae2_desc', ', ')
-#Spliteamos por y
 atomizarColumna(df5_clae2,'clae2_desc',' y ')
 """
 
@@ -371,5 +370,53 @@ atomizarColumna(df5_clae2,'clae2_desc',' y ')
 # Para ello hace falta renombrar gran parte de las descripciones ya que se pensaron para estar como un string
 # pero nosotros queremos atomizar cada atributo para que esten en 1FN en vez de pensarlos como un string.
 
-df5_letra = df5_letra.replace({'EXPLOTACION DE MINAS Y CANTERAS' : 'EXPLOTACIÓN DE MINAS Y EXPLOTACIÓN DE CANTERAS'},
-                              'SUMINISTRO DE ELECTRICIDAD, GAS, VAPOR Y AIRE ACONDICIONADO')
+df5_letra = df5_letra.replace({'EXPLOTACION DE MINAS Y CANTERAS' : 'EXPLOTACIÓN DE MINAS Y EXPLOTACIÓN DE CANTERAS',
+                               ' SUMINISTRO DE ELECTRICIDAD, GAS, VAPOR Y AIRE ACONDICIONADO' : 'SUMINISTRO DE ELECTRICIDAD,SUMINISTRO DE GAS, SUMINISTRO DE VAPOR, SUMINISTRO DE AIRE ACONDICIONADO',
+                            ' SUMINISTRO DE AGUA; CLOACAS; GESTIÓN DE RESIDUOS Y RECUPERACIÓN DE MATERIALES Y SANEAMIENTO PUBLICO':'SUMINISTRO DE AGUA, CLOACAS, GESTIÓN DE RESIDUOS, RECUPERACIÓN DE MATERIALES, SANEAMIENTO PÚBLICO',
+                        	' COMERCIO AL POR MAYOR Y AL POR MENOR; REPARACIÓN DE VEHÍCULOS AUTOMOTORES Y MOTOCICLETAS' :'COMERCIO AL POR MAYOR, COMERCIO AL POR MENOR, REPARACIÓN DE VEHÍCULOS AUTOMOTORES, REPARACIÓN DE MOTOCICLETAS',
+                        	' SERVICIO DE TRANSPORTE Y ALMACENAMIENTO':'SERVICIO DE TRANSPORTE, SERVICIO DE ALMACENAMIENTO',
+                        	' SERVICIOS PROFESIONALES, CIENTÍFICOS Y TÉCNICOS': 'SERVICIOS PROFESIONALES, SERVICIOS CIENTÍFICOS, SERVICIOS TÉCNICOS',
+                        	' SERVICIOS  ARTÍSTICOS, CULTURALES, DEPORTIVOS  Y DE ESPARCIMIENTO': 'SERVICIOS ARTÍSTICOS, SERVICIOS CULTURALES, SERVICIOS DEPORTIVOS, SERVICIOS DE ESPARCIMIENTO',
+                            })
+
+# Una vez renombrado todo a mano porque hacer una función tardaria demasiado. Podemos atomizar
+
+atomizarColumna(df5_letra,'letra_desc', ', ')
+atomizarColumna(df5_letra,'letra_desc',' y ')
+sacar_espacios_columna(df5_letra,'letra_desc') # esta función elimina los espacios al principio y final de las palabras gracias a la función strip
+
+
+#%%
+
+# Nos dimos cuenta que el df3 tiene las id de los departamentos que aparecen en el df1
+# Por lo cual debemos vincular ambos dataframe por medio de los nombres de departamento e
+# incluir en el df1, los id correspondientes a cada departamento que aparecen en df3
+
+# Primero renombramos en el df3 la columna departamento_nombre por departamento
+
+df3 = df3.rename(columns= {'departamento_nombre':'departamento'})
+
+# Segundo pasamos los nombres de los departamentos de ambos dataframe a mayuscula
+
+df3['departamento'] = df3['departamento'].str.upper()
+df1['departamento'] = df1['departamento'].str.upper()
+
+# Ahora vinculariamos los df pero nos damos cuenta al hacerlo que hay varios departamentos con 
+# el mismo nombre pero en distintas provincias. Como ejemplo, tenemos GENERAL ROCA que 
+# esta tanto en RÍO NEGRO como en CÓRDOBA. Por eso también tenemos que tener 
+# en cuenta las provincias a la hora de vincular los df
+
+# Dado que en el df1 las provincias estan en mayuscula, ponemos en mayusculas las de df3
+
+df3['provincia'] = df3['provincia'].str.upper()
+
+# Y ahora para unir las tablas. Le pedimos al df3 provincia, departamento y departamento_id, 
+# luego eliminamos los duplicados, y hacemos merge con provincia y departamento. Por lo que
+# en df1_resultado queda el df1 pero ahora con una nueva columna "departamento_id" que tiene
+# los id que le corresponden a cada departamento y provincia
+
+df1_resultado= df1.merge(df3[['provincia','departamento','departamento_id']].drop_duplicates() , on=['provincia','departamento'], how='left')
+
+# Y por último ponemos los id al lado de los departamentos
+
+df1_resultado.insert(4,'departamento_id',df1_resultado.pop('departamento_id'))

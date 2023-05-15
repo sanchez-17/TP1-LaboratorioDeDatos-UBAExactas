@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 import pandas as pd
 import re 
-
+import numpy as np
 
 padron = './dataframes/padron-de-operadores-organicos-certificados.csv'
 salario = './dataframes/w_median_depto_priv_clae2.csv'
@@ -359,8 +359,9 @@ df1['departamento'] = df1['departamento'].str.upper()
 # esta tanto en RÍO NEGRO como en CÓRDOBA. Por eso también tenemos que tener 
 # en cuenta las provincias a la hora de vincular los df
 
-# Dado que en el df1 las provincias estan en mayuscula, ponemos en mayusculas las de df3
+# Dado que en el df1 las provincias estan en mayuscula, ponemos en mayusculas las de df3 y también renombramos a provincia
 
+df3 = df3.rename(columns= {'provincia_nombre':'provincia'})
 df3['provincia'] = df3['provincia'].str.upper()
 
 # Y ahora para unir las tablas. Le pedimos al df3 provincia, departamento y departamento_id, 
@@ -368,8 +369,16 @@ df3['provincia'] = df3['provincia'].str.upper()
 # en df1_resultado queda el df1 pero ahora con una nueva columna "departamento_id" que tiene
 # los id que le corresponden a cada departamento y provincia
 
-df1_resultado= df1.merge(df3[['provincia','departamento','departamento_id']].drop_duplicates() , on=['provincia','departamento'], how='left')
+df3['nombre'] = df3['nombre'].str.upper()
+df1_corregido = df1 # Creamos un df1_corregido que será el que tenga los departamentos bien nombrados sin modificar el df1
+
+for departamento in df1_corregido['departamento']:
+    if departamento in df3['nombre'].values: # Verificar si hay coincidencia en la columna2 de df2
+        nombre_departamento = df3.loc[df3['nombre'] == departamento, 'departamento'].values[0] # Obtener el valor correspondiente de columna3 de df2
+        df1_corregido.loc[df1_corregido['departamento'] == departamento, 'departamento'] = nombre_departamento  # Reemplazar el valor en columna1_df1 de df1
+        
+
+df1_corregido= df1_corregido.merge(df3[['provincia_id','departamento','departamento_id']].drop_duplicates() , on=['provincia_id','departamento'], how='left')
 
 # Y por último ponemos los id al lado de los departamentos
-
-df1_resultado.insert(4,'departamento_id',df1_resultado.pop('departamento_id'))
+df1_corregido.insert(4,'departamento_id',df1_corregido.pop('departamento_id'))

@@ -146,6 +146,29 @@ df1.loc[con_campo_monte_o_pasturas,"productos"] = "INCULTO"
 df1.loc[con_campo_monte_o_pasturas,'rubro'] = "AGRICULTURA"
 
 #%%
+#Algunos registros se cambian manualmente, pues si atomizamos por " y " daran problemas de calidad
+con_y = df1.productos.str.contains(" Y ")
+ver_registros= df1.loc[con_y,["rubro","productos"]]
+df1.loc[2775,["rubro","productos"]] = ["ELABORACION","PULPA DE MANZANA Y JUGO DE MANZANA Y MANZANA DESHIDRATADA"]
+df1.loc[3200,["rubro","productos"]] = ["PROCESAMIENTO","CEREALES Y OLEAGINOSAS"]
+df1.loc[2880,"productos"] = "JUGO DE LIMON Y ACEITE DE LIMON"
+df1.loc[3254,["rubro","productos"]] = ["ALMACENAMIENTO Y FRIO","JUGO CONCENTRADO DE PERA Y PURE DE PERA"]
+df1.loc[2781,["rubro","productos"]] = ["ALMACENAMIENTO Y FRIO","JUGO CONCENTRADO DE PERA Y JUGO CONCENTRADO DE MANZANA"]
+df1.loc[2246,["rubro","productos"]] = ["FRUTICULTURA-HORTICULTURA","FRUTAS Y HORTICULTURA"]
+df1.loc[2219,"rubro"] = "FRUTICULTURA-HORTICULTURA"
+df1.loc[3186,["rubro","productos"]] = ["VENTAS","MANI"]
+df1.loc[3165,["rubro","productos"]] = ["VENTAS","CEREALES Y OLEAGINOSAS"]
+df1.loc[1576,"productos"] = "CEREALES Y OLEAGINOSAS"
+df1.loc[2768,["rubro","productos"]] = ["ELABORACION","JUGO CONCENTRADO DE PERA Y JUGO CONCENTRADO DE MANZANA"]
+df1.loc[2737,["rubro","productos"]] = ["ELABORACION","JUGO CONCENTRADO DE PERA Y JUGO CONCENTRADO DE MANZANA"]
+df1.loc[2782,"rubro"] = "FRUTICULTURA"
+df1.loc[2786,"rubro"] = "FRUTICULTURA"
+df1.loc[2221,"rubro"] = "APICULTURA"
+df1.loc[2878,"rubro"] = "APICULTURA"
+df1.loc[2339,"rubro"] = "APICULTURA"
+df1.loc[3166,"rubro"] = "APICULTURA"
+df1.loc[3276,"rubro"] = "APICULTURA"
+#%%
 #Es posible que tengamos problemas al separar por " Y ". La tarea no es trivial. VER
 bool4 = df1.rubro.str.contains(" Y ")
 aux4 = df1.loc[bool4].rubro

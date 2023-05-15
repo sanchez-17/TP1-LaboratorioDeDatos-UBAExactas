@@ -201,21 +201,9 @@ df1.loc[filtro,"rubro"] = "INCULTO"
 padron_productos_atom = './dataframes/checkpoints/padron_productos_atomizados.csv'
 df1 = pd.read_csv(padron_productos_atom)
 
+#Aquellos que tienen categoria "Comercializadores" y no tienen rubro, le definiremos como "VENTAS"
+df1.loc[df1.rubro.str.contains("INDEFINIDO") & df1.categoria_desc.str.contains("Comercializadores"),"rubro"] = "VENTAS"
 
-#%%
-#Atomizando columna rubro
-#Genero serie booleana para encontrar lo que buscamos
-df1.rubro.str.contains("SIN DEFINIR").value_counts()
-#Hay 109 registros en rubro sin definir
-df1_rubro_sin_definir = df1.loc[df1.rubro.str.contains("SIN DEFINIR")]
-#Al parecer estos registros tienen en la columna categoria_desc el valor "Comercializadores", veamos si pasa con todos los registros
-filtro = df1.categoria_desc.str.contains("Comercializadores")
-df1_categoria_comercializadores = df1.loc[filtro]
-#¿Es cierto que para todas las tuplas en donde categoria_desc="Comercializadores" pasa que rubro="SIN DEFINIR"?
-len(df1_rubro_sin_definir) == len(df1_categoria_comercializadores)
-#Es verdad!
-#Definimos el rubro como "ventas"
-df1.loc[filtro,"rubro"] = "VENTAS"
 #%%
 #Vemos la cantidad de valores unicos para poder atomizar aquellas tuplas que asi lo requieran
 aux = df1.rubro.value_counts()

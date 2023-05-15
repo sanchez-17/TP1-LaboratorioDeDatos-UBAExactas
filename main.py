@@ -195,6 +195,9 @@ df1.loc[filtro,"rubro"] = "INCULTO"
 #%%
 """-------------------------------COLUMNA RUBRO--------------------------------------------"""
 
+padron_productos_atom = './dataframes/padron-de-operadores-organicos-certificados.csv'
+df1_prod_atom = pd.read_csv(padron_productos_atom,encoding = 'windows-1258')
+
 
 #%%
 #Atomizando columna rubro

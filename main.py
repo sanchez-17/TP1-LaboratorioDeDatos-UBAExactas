@@ -203,7 +203,9 @@ df1 = pd.read_csv(padron_productos_atom)
 
 #Aquellos que tienen categoria "Comercializadores" y no tienen rubro, le definiremos como "VENTAS"
 df1.loc[df1.rubro.str.contains("INDEFINIDO") & df1.categoria_desc.str.contains("Comercializadores"),"rubro"] = "VENTAS"
-
+#Hay casos en donde esta el rubro elaboracion, pero al separar por comas se rompe. Lo corregimos manualmente
+aux=df1.loc[df1.rubro.str.contains("ACEITE ESCENCIAL Y PULPA DE CITRICOS"),["rubro","productos"]]
+df1.loc[df1.rubro.str.contains("ACEITE ESCENCIAL Y PULPA DE CITRICOS"),"rubro"] = "ELABORACION"
 #Veamos para separar por comas
 a=df1.loc[df1.rubro.str.contains(","),["rubro","productos"]]
 #No hay casos particulares, separamos:
@@ -216,44 +218,54 @@ atomizarColumna(df1,"rubro",';')
 a=df1.loc[df1.rubro.str.contains("-"),["rubro","productos"]]
 #No hay casos particulares, separamos:
 atomizarColumna(df1,"rubro",'-')
+#Veamos para separar por barras
+a=df1.loc[df1.rubro.str.contains("/"),["rubro","productos"]]
+#No hay casos particulares, separamos:
+atomizarColumna(df1,"rubro",'/')
+#Luego de separar por barra, surgieron otra vez errrores de tipo
+df1.loc[df1.rubro == "AGICULTURA","rubro"] = "AGRICULTURA"
+#Veamos si hay puntos
+a=df1.loc[df1.rubro.str.contains("\."),"rubro"]
+atomizarColumna(df1,"rubro",'\.')
+
+#Es posible que tengamos problemas al separar por " Y ". La tarea no es trivial.
 a = df1.loc[df1.rubro.str.contains(" Y "),["rubro","productos"]]
-
-#%%
-#Vemos la cantidad de valores unicos para poder atomizar aquellas tuplas que asi lo requieran
-aux = df1.rubro.value_counts()
-"""
-Habra que separar por:
-    .
-    /
-    " Y "
-    ,
-    -
-    ;
-Ademas sacar los puntos
-y por ultimo sacar los espacios(el primer espacio y ultimo)
-
-"""
-
-col="rubro"
-atomizarColumna(df1,col,'.')
-#Verifico
-df1.rubro.str.contains("\.").sum() #0
-
-atomizarColumna(df1,col,'/')
-#Verifico
-df1.rubro.str.contains("/").sum() #0
-
-atomizarColumna(df1,col,',')
-df1.rubro.str.contains(',').sum() #0
-
-atomizarColumna(df1,col,';')
-df1.rubro.str.contains(';').sum() #0
-
-atomizarColumna(df1,col,'-')
-df1.rubro.str.contains('-').sum() #0
-
-df1[col] = df1[col].apply(sacar_espacios_en_extremos)
-df1[df1.rubro.str.startswith(" ")].rubro.count() #0
+#Caso en donde contiene la palabra "PROCESAMIENTO"
+b = df1.loc[df1.rubro.str.contains(" Y ") & df1.rubro.str.contains("PROCESAMIENTO"),["rubro","productos"]]
+#Hay un solo caso particular: "PROCESAMIENTO DE TE Y MOLINO YERBA MATE". Los demas solo pueden reemplazarse por la palabra "PROCESAMIENTO"
+df1.loc[df1.rubro.str.contains("PROCESAMIENTO FRUTALES Y HORTALIZAS") |
+        df1.rubro.str.contains("PROCESAMIENTO CEREALES Y OLEAGINOSAS") |
+        df1.rubro.str.contains("PROCESAMIENTO DE CEREALES Y OLEAGINOSAS") |
+        df1.rubro.str.contains("PROCESAMIENTO DE MANI Y SOJA")
+        ,"rubro"] = "PROCESAMIENTO"
+#Veamos mas casos
+aux=df1.loc[df1.rubro.str.contains(" Y ") ,["rubro","productos"]].rubro.value_counts()
+df1.loc[df1.rubro.str.contains("ACOPIO Y ACONDICIONAMIENTO DE GRANOS") ,"rubro",] = "ACOPIO-ACONDICIONAMIENTO"
+df1.loc[df1.rubro.str.contains("FRACCIONAMIENTO Y DEPOSITO DE HIERBAS AROMATICAS Y MEDICINALES") ,"rubro",] = "FRACCIONAMIENTO-DEPOSITO"
+df1.loc[df1.rubro.str.contains("ELABORACION DE  JUGOS CONCENTRADOS Y FABRICA DE ACEITES ESENCIALES") ,"rubro",] = "ELABORACION"
+df1.loc[df1.rubro.str.contains("EMPAQUE Y FRIGORIFICO DE FRUTAS NO CITRICAS") ,"rubro",] = "EMPAQUE-FRIGORIFICO"
+df1.loc[df1.rubro.str.contains("EMPAQUE Y FRIGORIFICO FRUTAS NO CITRICAS ") ,"rubro",] = "EMPAQUE-FRIGORIFICO"
+df1.loc[df1.rubro.str.contains("ELABORACION DE JUGO CONCENTRADO DE MANZANA Y PERA") ,"rubro",] = "ELABORACION"
+df1.loc[df1.rubro.str.contains("MOLINO Y FRACCIONAMIENTO DE TE") ,"rubro",] = "MOLINO-FRACCIONAMIENTO"
+df1.loc[df1.rubro.str.contains("ELABORACION Y EXTRACCION DE ACEITE") ,"rubro",] = "ELABORACION-EXTRACCION"
+df1.loc[df1.rubro.str.contains("BODEGA VITIVINICOLA Y ELABORACION DE  VINAGRE") ,"rubro",] = "BODEGA-ELABORACION"
+df1.loc[df1.rubro.str.contains("EMPAQUE DE HORTALIZAS Y FRUTAS NO CITRICAS") ,"rubro",] = "EMPAQUE"
+df1.loc[df1.rubro.str.contains("ELABORACION DE DULCES Y FRUTAS EN ALMIBAR") ,"rubro",] = "ELABORACION"
+df1.loc[df1.rubro.str.contains("PROCESAMIENTO DE TE Y MOLINO YERBA MATE") ,"rubro",] = "PROCESAMIENTO-MOLINO"
+df1.loc[df1.rubro.str.contains("ELABORACION DE MANZANA Y PERA DEHIDRATADA") ,"rubro",] = "ELABORACION"
+df1.loc[df1.rubro.str.contains("ALMACENAMIENTO Y FRIO PARA FRUTAS NO CITRICAS") ,"rubro",] = "ALMACENAMIENTO-FRIO"
+df1.loc[df1.rubro.str.contains("EXTRACCION DE ACEITE Y ELABORACION DE ACEITUNAS Y OTROS") ,"rubro",] = "EXTRACCION-ELABORACION"
+df1.loc[df1.rubro.str.contains("PROCESADO Y ENVASADO DE HORTALIZAS") ,"rubro",] = "PROCESADO-ENVASADO"
+df1.loc[df1.rubro.str.contains("ELABORACION DE JUGOS Y BODEGA VITIVINICOLA") ,"rubro",] = "ELABORACION-BODEGA"
+df1.loc[df1.rubro.str.contains("FRACCIONAMIENTO Y EMPAQUE DE ARROZ") ,"rubro",] = "FRACCIONAMIENTO-EMPAQUE"
+df1.loc[df1.rubro.str.contains("FRIGORIFICOS Y EMPAQUE PARA  FRUTAS") ,"rubro",] = "FRIGORIFICOS-EMPAQUE"
+#Definimo el rubro "APICULTURA" y productos "MIEL"
+aux = df1.loc[df1.rubro.str.contains("EXTRACCION Y FRACCIONAMIENTO DE MIEL"),["rubro","productos"]]
+df1.loc[df1.rubro.str.contains("EXTRACCION Y FRACCIONAMIENTO DE MIEL"),["rubro","productos"]] = ["APICULTURA","MIEL"]
+#Solo falta separar por " Y ", "-". Finalmente quitar espacios en blanco extremos
+atomizarColumna(df1,"rubro",' Y ')
+atomizarColumna(df1,"rubro",'-')
+df1.rubro = df1.rubro.apply(sacar_espacios_en_extremos)
 #%%
 """--------------Columna establecimiento-------------------"""
 df1.loc[df1.establecimiento == "NC","establecimiento"] = sin_definir

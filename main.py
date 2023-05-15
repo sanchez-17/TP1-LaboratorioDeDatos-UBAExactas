@@ -137,8 +137,8 @@ df1.loc[124,"rubro"] = "HORTICULTURA,HORTICULTURA"
 #%%
 atomizarColumna(df1,col,';')
 atomizarColumna(df1,col,'-')
-atomizarColumna(df1,col,' + ')
-atomizarColumna(df1,col,' ? ')
+atomizarColumna(df1,col,'+')
+atomizarColumna(df1,col,'?')
 #%%
 #Quitamos puntos
 df1.productos = df1.productos.apply(reemplazar,args=(".",""))
@@ -198,8 +198,8 @@ df1.loc[filtro,"rubro"] = "INCULTO"
 #%%
 """-------------------------------COLUMNA RUBRO--------------------------------------------"""
 
-padron_productos_atom = './dataframes/padron-de-operadores-organicos-certificados.csv'
-df1_prod_atom = pd.read_csv(padron_productos_atom,encoding = 'windows-1258')
+padron_productos_atom = './dataframes/checkpoints/padron_productos_atomizados.csv'
+df1 = pd.read_csv(padron_productos_atom)
 
 
 #%%

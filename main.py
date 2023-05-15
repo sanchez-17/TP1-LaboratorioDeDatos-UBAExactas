@@ -168,6 +168,10 @@ df1.loc[2878,"rubro"] = "APICULTURA"
 df1.loc[2339,"rubro"] = "APICULTURA"
 df1.loc[3166,"rubro"] = "APICULTURA"
 df1.loc[3276,"rubro"] = "APICULTURA"
+#Atomizamos
+atomizarColumna(df1,col,' Y ')
+#Limpiamos los espacios en blanco
+df1.productos = df1.productos.apply(sacar_espacios_en_extremos)
 #%%
 #Es posible que tengamos problemas al separar por " Y ". La tarea no es trivial. VER
 bool4 = df1.rubro.str.contains(" Y ")

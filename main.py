@@ -138,8 +138,13 @@ atomizarColumna(df1,col,' + ')
 atomizarColumna(df1,col,' ? ')
 #%%
 #Quitamos puntos
-b=df1.loc[df1.productos.str.contains("\."),"productos"]
 df1.productos = df1.productos.apply(reemplazar,args=(".",""))
+
+con_campo_monte_o_pasturas = df1.productos.str.contains("CAMPO") | df1.productos.str.contains("MONTE") | df1.productos.str.contains("PASTURAS")
+#Definimos el producto como "INCULTO" y rubro "AGRICULTURA"
+df1.loc[con_campo_monte_o_pasturas,"productos"] = "INCULTO"
+df1.loc[con_campo_monte_o_pasturas,'rubro'] = "AGRICULTURA"
+
 #%%
 #Es posible que tengamos problemas al separar por " Y ". La tarea no es trivial. VER
 bool4 = df1.rubro.str.contains(" Y ")

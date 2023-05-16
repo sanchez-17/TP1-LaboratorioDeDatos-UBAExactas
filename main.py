@@ -303,40 +303,7 @@ provNaN = df2['id_provincia_indec'].isna() # Retorna 9156
 # en la otra.
 
 (dptoNaN == provNaN).sum() == len(df2)  # Esto da True.
-#%%
-df3 = df3.rename(columns ={'provincia_nombre':'nombre_provincia'})
-df3 = df3.rename(columns ={'municipio_nombre':'nombre_municipio'})
-df3 = df3.rename(columns ={'departamento_nombre':'nombre_departamento'})
 
-#%%
-
-#TRATAMIENTO DE NANS
-
-df3_dict=df3
-
-df3.loc[df3.nombre_departamento.isna(),"nombre_departamento"]=sin_definir
-df3.loc[df3.funcion.isna(),"funcion"]='SIN FUNCIÓN'
-df3.loc[df3.nombre_municipio.isna(),"nombre_municipio"]=sin_definir
-df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
-df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
-
-#PARTIMOS PROVINCIA
-df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
-#correccion para que se asemeje a df4
-df3_provincia=df3_provincia.sort_values(by=['provincia_id']) 
-df3_dict = df3_dict.drop('nombre_provincia',axis=1)
-
-#PARTIMOS MUNICIPIO
-df3_municipio = df3[['municipio_id', 'nombre_municipio']].drop_duplicates().reset_index(drop=True)
-df3_dict = df3_dict.drop('nombre_municipio',axis=1)
-
-#PARTIMOS DEPARTAMENTO
-df3_departamento = df3[['departamento_id', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
-df3_dict = df3_dict.drop('nombre_departamento',axis=1)
-
-#PARTIMOS LOCALIDAD
-df3_localidad = df3[['id', 'nombre','funcion','centroide_lat','centroide_lon','categoria','fuente']].drop_duplicates().reset_index(drop=True)
-df3_dict = df3_dict.drop(labels=['nombre','funcion','centroide_lat','centroide_lon','categoria','fuente'],axis=1)
 #%%
 
 # PARTIENDO EL DATAFRAME 4 
@@ -416,6 +383,33 @@ sacar_espacios_columna(df5_letra,'letra_desc') # esta función elimina los espac
 
 
 #%%
+"****************DF3********************"
+#TRATAMIENTO DE NANS
+
+df3.loc[df3.nombre_departamento.isna(),"nombre_departamento"]=sin_definir
+df3.loc[df3.funcion.isna(),"funcion"]='SIN FUNCIÓN'
+df3.loc[df3.nombre_municipio.isna(),"nombre_municipio"]=sin_definir
+#asumimos que aquellos municipios sin id, sean -99 y representan a un valor numerico sin definir
+df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
+df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
+
+#PARTIMOS PROVINCIA
+df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
+#correccion para que se asemeje a df4
+df3_provincia=df3_provincia.sort_values(by=['provincia_id']) 
+df3_dict = df3_dict.drop('nombre_provincia',axis=1)
+
+#PARTIMOS MUNICIPIO
+df3_municipio = df3[['municipio_id', 'nombre_municipio']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('nombre_municipio',axis=1)
+
+#PARTIMOS DEPARTAMENTO
+df3_departamento = df3[['departamento_id', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('nombre_departamento',axis=1)
+
+#PARTIMOS LOCALIDAD
+df3_localidad = df3[['id', 'nombre','funcion','centroide_lat','centroide_lon','categoria','fuente']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop(labels=['nombre','funcion','centroide_lat','centroide_lon','categoria','fuente'],axis=1)
 """
 Nos dimos cuenta que el df3 tiene las id de los departamentos que aparecen en el df1. 
 Por lo cual debemos vincular ambos dataframe por medio de los nombres de departamento e incluir en el df1 
@@ -425,8 +419,9 @@ los id correspondientes a cada departamento que aparecen en df3.
 
 # Primero renombramos en el df3 las columnas para que matcheen con las del df1
 
-df3 = df3.rename(columns= {'nombre_departamento':'departamento'})
-df3 = df3.rename(columns= {'nombre_provincia':'provincia'})
+df3 = df3.rename(columns ={'provincia_nombre':'provincia'})
+df3 = df3.rename(columns ={'municipio_nombre':'municipo'})
+df3 = df3.rename(columns ={'departamento_nombre':'departamento'})
 
 # Segundo pasamos los nombres de los departamentos de ambos dataframe a mayuscula
 
@@ -513,6 +508,3 @@ df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" | df1.provincia=="CIUDAD A
 df3_depYProv=df3[['provincia_id','provincia','departamento_id', 'departamento']].drop_duplicates().reset_index(drop=True)
 df1_depYProv=df1[['provincia_id','provincia','departamento']].drop_duplicates().reset_index(drop=True)
 
-#%%
-a = df3.loc[df3.nombre_departamento.isna(),'nombre_departamento']
-df3.isna().sum()

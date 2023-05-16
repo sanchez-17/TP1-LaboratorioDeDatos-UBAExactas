@@ -397,7 +397,7 @@ df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
 df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
 #correccion para que se asemeje a df4
 df3_provincia=df3_provincia.sort_values(by=['provincia_id']) 
-df3_dict = df3_dict.drop('nombre_provincia',axis=1)
+df3_dict = df3.drop('nombre_provincia',axis=1)
 
 #PARTIMOS MUNICIPIO
 df3_municipio = df3[['municipio_id', 'nombre_municipio']].drop_duplicates().reset_index(drop=True)

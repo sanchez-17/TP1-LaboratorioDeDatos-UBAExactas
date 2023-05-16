@@ -295,7 +295,7 @@ NaN_columnas = df2.columns[df2.isna().any()].tolist() # Con esto sabemos que col
 # en una y a veces en la otra.
 
 dptoNaN = df2['codigo_departamento_indec'].isna() # Retorna 9156
-provNaN = df2['id_provincia_indec'].isna() # Retorna 9156
+provNaN = df2['provincia_id'].isna() # Retorna 9156
 
 # Pero con esto no nos alcanza asi que por último chequeamos si cada vez que aparece False o True en dptoNaN 
 # se corresponde con los False o True de provNaN. Eso daria una serie de Pandas llena de valores True. Y si el sum()
@@ -303,6 +303,9 @@ provNaN = df2['id_provincia_indec'].isna() # Retorna 9156
 # en la otra.
 
 (dptoNaN == provNaN).sum() == len(df2)  # Esto da True.
+
+df2_sinNaN=df2.dropna() #Armamos otro dataframe sin los NaNs. El df2 original se puede preservar
+#por si se quiere hacer un análisis exclusivamente de los salarios y el sector productivo del cual provienen.
 #%%
 df3 = df3.rename(columns ={'provincia_nombre':'nombre_provincia'})
 df3 = df3.rename(columns ={'municipio_nombre':'nombre_municipio'})
@@ -399,13 +402,13 @@ atomizarColumna(df5_clae2,'clae2_desc',' y ')
 # Para ello hace falta renombrar gran parte de las descripciones ya que se pensaron para estar como un string
 # pero nosotros queremos atomizar cada atributo para que esten en 1FN en vez de pensarlos como un string.
 
-df5_letra = df5_letra.replace({'EXPLOTACION DE MINAS Y CANTERAS' : 'EXPLOTACIÓN DE MINAS Y EXPLOTACIÓN DE CANTERAS',
+df5_letra = df5_letra.replace({'EXPLOTACION DE MINAS Y CANTERAS' : 'EXPLOTACIÓN DE MINAS Y EXPLOTACION DE CANTERAS',
                                ' SUMINISTRO DE ELECTRICIDAD, GAS, VAPOR Y AIRE ACONDICIONADO' : 'SUMINISTRO DE ELECTRICIDAD,SUMINISTRO DE GAS, SUMINISTRO DE VAPOR, SUMINISTRO DE AIRE ACONDICIONADO',
-                            ' SUMINISTRO DE AGUA; CLOACAS; GESTIÓN DE RESIDUOS Y RECUPERACIÓN DE MATERIALES Y SANEAMIENTO PUBLICO':'SUMINISTRO DE AGUA, CLOACAS, GESTIÓN DE RESIDUOS, RECUPERACIÓN DE MATERIALES, SANEAMIENTO PÚBLICO',
-                        	' COMERCIO AL POR MAYOR Y AL POR MENOR; REPARACIÓN DE VEHÍCULOS AUTOMOTORES Y MOTOCICLETAS' :'COMERCIO AL POR MAYOR, COMERCIO AL POR MENOR, REPARACIÓN DE VEHÍCULOS AUTOMOTORES, REPARACIÓN DE MOTOCICLETAS',
+                            ' SUMINISTRO DE AGUA; CLOACAS; GESTIÓN DE RESIDUOS Y RECUPERACIÓN DE MATERIALES Y SANEAMIENTO PUBLICO':'SUMINISTRO DE AGUA, CLOACAS, GESTION DE RESIDUOS, RECUPERACIÓN DE MATERIALES, SANEAMIENTO PUBLICO',
+                        	' COMERCIO AL POR MAYOR Y AL POR MENOR; REPARACIÓN DE VEHÍCULOS AUTOMOTORES Y MOTOCICLETAS' :'COMERCIO AL POR MAYOR, COMERCIO AL POR MENOR, REPARACION DE VEHICULOS AUTOMOTORES, REPARACION DE MOTOCICLETAS',
                         	' SERVICIO DE TRANSPORTE Y ALMACENAMIENTO':'SERVICIO DE TRANSPORTE, SERVICIO DE ALMACENAMIENTO',
-                        	' SERVICIOS PROFESIONALES, CIENTÍFICOS Y TÉCNICOS': 'SERVICIOS PROFESIONALES, SERVICIOS CIENTÍFICOS, SERVICIOS TÉCNICOS',
-                        	' SERVICIOS  ARTÍSTICOS, CULTURALES, DEPORTIVOS  Y DE ESPARCIMIENTO': 'SERVICIOS ARTÍSTICOS, SERVICIOS CULTURALES, SERVICIOS DEPORTIVOS, SERVICIOS DE ESPARCIMIENTO',
+                        	' SERVICIOS PROFESIONALES, CIENTÍFICOS Y TÉCNICOS': 'SERVICIOS PROFESIONALES, SERVICIOS CIENTIFICOS, SERVICIOS TECNICOS',
+                        	' SERVICIOS  ARTÍSTICOS, CULTURALES, DEPORTIVOS  Y DE ESPARCIMIENTO': 'SERVICIOS ARTISTICOS, SERVICIOS CULTURALES, SERVICIOS DEPORTIVOS, SERVICIOS DE ESPARCIMIENTO',
                             })
 
 # Una vez renombrado todo a mano porque hacer una función tardaria demasiado. Podemos atomizar

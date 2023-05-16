@@ -458,7 +458,7 @@ df1_corregido= df1_corregido.merge(df3[['provincia_id','departamento','departame
 df1_corregido.insert(4,'departamento_id',df1_corregido.pop('departamento_id'))
 
 #%%
-#-------JUAN PABLO
+#-----------------------------------JUAN PABLO-------------------------------
 
 df1_corregido_fails=df1_corregido[df1_corregido.departamento_id.isna()]
 
@@ -477,3 +477,6 @@ df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" | df1.provincia=="CIUDAD A
 df3_depYProv=df3[['provincia_id','provincia','departamento_id', 'departamento']].drop_duplicates().reset_index(drop=True)
 df1_depYProv=df1[['provincia_id','provincia','departamento']].drop_duplicates().reset_index(drop=True)
 
+#%%
+a = df3.loc[df3.nombre_departamento.isna(),'nombre_departamento']
+df3.isna().sum()

@@ -307,40 +307,6 @@ provNaN = df2['provincia_id'].isna() # Retorna 9156
 df2_sinNaN=df2.dropna() #Armamos otro dataframe sin los NaNs. El df2 original se puede preservar
 #por si se quiere hacer un análisis exclusivamente de los salarios y el sector productivo del cual provienen.
 #%%
-df3 = df3.rename(columns ={'provincia_nombre':'nombre_provincia'})
-df3 = df3.rename(columns ={'municipio_nombre':'nombre_municipio'})
-df3 = df3.rename(columns ={'departamento_nombre':'nombre_departamento'})
-
-#%%
-
-#TRATAMIENTO DE NANS
-
-df3_dict=df3
-
-df3.loc[df3.nombre_departamento.isna(),"nombre_departamento"]=sin_definir
-df3.loc[df3.funcion.isna(),"funcion"]='SIN FUNCIÓN'
-df3.loc[df3.nombre_municipio.isna(),"nombre_municipio"]=sin_definir
-df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
-df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
-
-#PARTIMOS PROVINCIA
-df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
-#correccion para que se asemeje a df4
-df3_provincia=df3_provincia.sort_values(by=['provincia_id']) 
-df3_dict = df3_dict.drop('nombre_provincia',axis=1)
-
-#PARTIMOS MUNICIPIO
-df3_municipio = df3[['municipio_id', 'nombre_municipio']].drop_duplicates().reset_index(drop=True)
-df3_dict = df3_dict.drop('nombre_municipio',axis=1)
-
-#PARTIMOS DEPARTAMENTO
-df3_departamento = df3[['departamento_id', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
-df3_dict = df3_dict.drop('nombre_departamento',axis=1)
-
-#PARTIMOS LOCALIDAD
-df3_localidad = df3[['id', 'nombre','funcion','centroide_lat','centroide_lon','categoria','fuente']].drop_duplicates().reset_index(drop=True)
-df3_dict = df3_dict.drop(labels=['nombre','funcion','centroide_lat','centroide_lon','categoria','fuente'],axis=1)
-#%%
 
 # PARTIENDO EL DATAFRAME 4 
 
@@ -419,6 +385,33 @@ sacar_espacios_columna(df5_letra,'letra_desc') # esta función elimina los espac
 
 
 #%%
+"****************DF3********************"
+#TRATAMIENTO DE NANS
+
+df3.loc[df3.nombre_departamento.isna(),"nombre_departamento"]=sin_definir
+df3.loc[df3.funcion.isna(),"funcion"]='SIN FUNCIÓN'
+df3.loc[df3.nombre_municipio.isna(),"nombre_municipio"]=sin_definir
+#asumimos que aquellos municipios sin id, sean -99 y representan a un valor numerico sin definir
+df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
+df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
+
+#PARTIMOS PROVINCIA
+df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
+#correccion para que se asemeje a df4
+df3_provincia=df3_provincia.sort_values(by=['provincia_id']) 
+df3_dict = df3.drop('nombre_provincia',axis=1)
+
+#PARTIMOS MUNICIPIO
+df3_municipio = df3[['municipio_id', 'nombre_municipio']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('nombre_municipio',axis=1)
+
+#PARTIMOS DEPARTAMENTO
+df3_departamento = df3[['departamento_id', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('nombre_departamento',axis=1)
+
+#PARTIMOS LOCALIDAD
+df3_localidad = df3[['id', 'nombre','funcion','centroide_lat','centroide_lon','categoria','fuente']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop(labels=['nombre','funcion','centroide_lat','centroide_lon','categoria','fuente'],axis=1)
 """
 Nos dimos cuenta que el df3 tiene las id de los departamentos que aparecen en el df1. 
 Por lo cual debemos vincular ambos dataframe por medio de los nombres de departamento e incluir en el df1 
@@ -428,8 +421,9 @@ los id correspondientes a cada departamento que aparecen en df3.
 
 # Primero renombramos en el df3 las columnas para que matcheen con las del df1
 
-df3 = df3.rename(columns= {'nombre_departamento':'departamento'})
-df3 = df3.rename(columns= {'nombre_provincia':'provincia'})
+df3 = df3.rename(columns ={'provincia_nombre':'provincia'})
+df3 = df3.rename(columns ={'municipio_nombre':'municipo'})
+df3 = df3.rename(columns ={'departamento_nombre':'departamento'})
 
 # Segundo pasamos los nombres de los departamentos de ambos dataframe a mayuscula
 
@@ -479,7 +473,7 @@ for departamento in df1_corregido['departamento']:
         nombre_departamento = df3.loc[df3['nombre'] == departamento, 'departamento'].values[0] # Obtener el valor correspondiente de df3['departamento']
         df1_corregido.loc[df1_corregido['departamento'] == departamento, 'departamento'] = nombre_departamento  # Reemplazar el valor en df1['departamento']
 
-del departamento # para que no queden variables innecesarias
+del departamento # para que no queden variables innecesarias 
 
 # Octavo. Hacemos el merge
 
@@ -496,8 +490,23 @@ Esto es verificable con el siguiente comando.
 """
 df1_corregido.loc[df1_corregido.departamento_id.isna(),'departamento_id']
 
+""" 
+Ahora otra cosa aparte es que podemos inferir la localidad (que la mayoria aparecen como NaN corregidos a INDENIFINIDO) a partir
+del df3. Asi que hacemos eso a continuación.
+"""
+
+# Una cosa a destacar es que la idea seria vincular departamentos del df1 con departamentos del df3, y en la fila que matchee
+# quedarnos con la localidad y reemplazarla en el df1. Facil. Pero el problema es que cada departamento tiene varias localidades
+# Asi que ¿cual de todas nos quedamos?. Nosotros decidimos siempre utilizar aquellas localidades que tienen como función ser
+# CABECERA_DEPARTAMENTO. Ya que no existe otra manera de averiguar cual de todas las localidades posibles poner en INDEFINIDO.
+
+for departamento in df1_corregido['departamento']:
+    if departamento in df3['departamento'].values & df3.loc['departamento' == departamento,'funcion']=='CABECERA_DEPARTAMENTO' : # Verificar si hay coincidencia de departamentos y si la localidad es CABECERA_DEPARTAMENTO
+        nombre_localidad= df3.loc[df3['departamento'] == departamento, 'nombre'].values[0] # Obtener el valor correspondiente de df3['departamento']
+        df1_corregido.loc[df1_corregido['departamento'] == departamento, 'localidad'] = nombre_localidad  # Reemplazar el valor en df1['departamento']
+
 #%%
-#-------JUAN PABLO
+#-----------------------------------JUAN PABLO-------------------------------
 
 df1_corregido_fails=df1_corregido[df1_corregido.departamento_id.isna()]
 

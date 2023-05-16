@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#Grupo: Alta Data
+#integrantes : 
 import pandas as pd
 import re 
 from unidecode import unidecode
@@ -270,9 +272,10 @@ df1.loc[df1.rubro.str.contains("EXTRACCION Y FRACCIONAMIENTO DE MIEL"),["rubro",
 atomizarColumna(df1,"rubro",' Y ')
 atomizarColumna(df1,"rubro",'-')
 df1.rubro = df1.rubro.apply(sacar_espacios_en_extremos)
-#%%
 """--------------Columna establecimiento-------------------"""
 df1.loc[df1.establecimiento == "NC","establecimiento"] = sin_definir
+df1.to_csv('./TablasLimpias/df1.csv', index=False)
+
 #%%
 df2.rename(columns={'id_provincia_indec': 'provincia_id'}, inplace=True)
 
@@ -317,17 +320,23 @@ df4 = df4.rename(columns ={'nombre_provincia_indec':'nombre_provincia'})
 
 #PARTIMOS DEPARTAMENTO
 df4_departamento = df4[['codigo_departamento', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
+#exportamos a csv:
+df4_departamento.to_csv('./TablasLimpias/departamentos_df4.csv', index=False)
 
 #PARTIMOS PROVINCIA
 
 #correcciones para que sea igual a df3
 df4.loc[df4.nombre_provincia=="Tierra Del Fuego","nombre_provincia"]="Tierra del Fuego, Antártida e Islas del Atlántico Sur"
 df4.loc[df4.nombre_provincia=="CABA","nombre_provincia"]="Ciudad Autónoma de Buenos Aires"
-df4_provincia = df4[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
+df4_provincias = df4[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
+#exportamos df4_provincia
+df4_provincias.to_csv('./TablasLimpias/provincias_df4.csv', index=False)
 
 # df4_dict es la versión normalizada de df4 que se conecta mediante la PK con df4_departamento y df4_provincia
 df4_dict = df4.drop('nombre_departamento',axis=1)
 df4_dict = df4_dict.drop('nombre_provincia',axis=1)
+#Exportamos df4 normalizado
+df4_dict.to_csv('./TablasLimpias/df4.csv', index=False)
 
 
 #%% como dataframe/tabla de provincia se usa df4_provincia con las siguientes correcciones
@@ -354,12 +363,12 @@ df5_letra = df5[['letra', 'letra_desc']].drop_duplicates().reset_index(drop=True
 df5_dict = df5.drop('clae2_desc',axis=1)
 df5_dict = df5_dict.drop('letra_desc',axis=1)
 
-""" es dificil normalizar df5_clae2 ya que las descripciones estan pensadas como string y no para separarse en valores atomizados.
+#es dificil normalizar df5_clae2 ya que las descripciones estan pensadas como string y no para separarse en valores atomizados.
 # NORMALIZAMOS df5_clae2
 
 atomizarColumna(df5_clae2,'clae2_desc', ', ')
 atomizarColumna(df5_clae2,'clae2_desc',' y ')
-"""
+
 
 # NORMALIZAMOS df5_letra
 
@@ -380,6 +389,9 @@ df5_letra = df5_letra.replace({'EXPLOTACION DE MINAS Y CANTERAS' : 'EXPLOTACIÓN
 atomizarColumna(df5_letra,'letra_desc', ', ')
 atomizarColumna(df5_letra,'letra_desc',' y ')
 sacar_espacios_columna(df5_letra,'letra_desc') # esta función elimina los espacios al principio y final de las palabras gracias a la función strip
+#Exportamos df5 normalizado
+df5_letra.to_csv('./TablasLimpias/categorias.csv', index=False)
+df5_dict.to_csv('./TablasLimpias/df5.csv', index=False)
 
 
 #%%
@@ -523,3 +535,5 @@ df1.loc[df1.provincia=="CIUDAD AUTONOMA BUENOS AIRES" | df1.provincia=="CIUDAD A
 df3_depYProv=df3[['provincia_id','provincia','departamento_id', 'departamento']].drop_duplicates().reset_index(drop=True)
 df1_depYProv=df1[['provincia_id','provincia','departamento']].drop_duplicates().reset_index(drop=True)
 
+df3.to_csv('./TablasLimpias/df3.csv', index=False)
+df1.to_csv('./TablasLimpias/df1.csv', index=False)

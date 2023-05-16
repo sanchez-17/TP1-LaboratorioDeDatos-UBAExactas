@@ -471,7 +471,7 @@ for departamento in df1_corregido['departamento']:
         nombre_departamento = df3.loc[df3['nombre'] == departamento, 'departamento'].values[0] # Obtener el valor correspondiente de df3['departamento']
         df1_corregido.loc[df1_corregido['departamento'] == departamento, 'departamento'] = nombre_departamento  # Reemplazar el valor en df1['departamento']
 
-del departamento # para que no queden variables innecesarias
+del departamento # para que no queden variables innecesarias 
 
 # Octavo. Hacemos el merge
 
@@ -487,6 +487,21 @@ departamentos, y ahora tiene 960 filas que si tienen id de departamento.
 Esto es verificable con el siguiente comando.
 """
 df1_corregido.loc[df1_corregido.departamento_id.isna(),'departamento_id']
+
+""" 
+Ahora otra cosa aparte es que podemos inferir la localidad (que la mayoria aparecen como NaN corregidos a INDENIFINIDO) a partir
+del df3. Asi que hacemos eso a continuación.
+"""
+
+# Una cosa a destacar es que la idea seria vincular departamentos del df1 con departamentos del df3, y en la fila que matchee
+# quedarnos con la localidad y reemplazarla en el df1. Facil. Pero el problema es que cada departamento tiene varias localidades
+# Asi que ¿cual de todas nos quedamos?. Nosotros decidimos siempre utilizar aquellas localidades que tienen como función ser
+# CABECERA_DEPARTAMENTO. Ya que no existe otra manera de averiguar cual de todas las localidades posibles poner en INDEFINIDO.
+
+for departamento in df1_corregido['departamento']:
+    if departamento in df3['departamento'].values & df3.loc['departamento' == departamento,'funcion']=='CABECERA_DEPARTAMENTO' : # Verificar si hay coincidencia de departamentos y si la localidad es CABECERA_DEPARTAMENTO
+        nombre_localidad= df3.loc[df3['departamento'] == departamento, 'nombre'].values[0] # Obtener el valor correspondiente de df3['departamento']
+        df1_corregido.loc[df1_corregido['departamento'] == departamento, 'localidad'] = nombre_localidad  # Reemplazar el valor en df1['departamento']
 
 #%%
 #-----------------------------------JUAN PABLO-------------------------------

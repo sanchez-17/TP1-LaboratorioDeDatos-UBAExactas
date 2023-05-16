@@ -390,7 +390,7 @@ df5_letra = df5_letra.replace({'EXPLOTACION DE MINAS Y CANTERAS' : 'EXPLOTACIÓN
 
 atomizarColumna(df5_letra,'letra_desc', ', ')
 atomizarColumna(df5_letra,'letra_desc',' y ')
-sacar_espacios_columna(df5_letra,'letra_desc') # esta función elimina los espacios al principio y final de las palabras gracias a la función strip
+df5_letra.letra_desc = df5_letra.letra_desc.apply(sacar_espacios_en_extremos) # esta función elimina los espacios al principio y final de las palabras gracias a la función strip
 #Exportamos df5 normalizado
 df5_letra.to_csv('./TablasLimpias/categorias.csv', index=False)
 df5_dict.to_csv('./TablasLimpias/df5.csv', index=False)

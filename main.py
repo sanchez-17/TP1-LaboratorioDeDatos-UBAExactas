@@ -400,30 +400,31 @@ df5_dict.to_csv('./TablasLimpias/df5.csv', index=False)
 "****************DF3********************"
 #TRATAMIENTO DE NANS
 
-df3.loc[df3.nombre_departamento.isna(),"nombre_departamento"]=sin_definir
+df3.loc[df3.departamento_nombre.isna(),"departamento_nombre"]=sin_definir
 df3.loc[df3.funcion.isna(),"funcion"]='SIN FUNCIÓN'
-df3.loc[df3.nombre_municipio.isna(),"nombre_municipio"]=sin_definir
+df3.loc[df3.municipio_nombre.isna(),"municipio_nombre"]=sin_definir
 #asumimos que aquellos municipios sin id, sean -99 y representan a un valor numerico sin definir
 df3.loc[df3.municipio_id.isna(),"municipio_id"]=-99
 df3.loc[df3.departamento_id.isna(),"departamento_id"]=-99
 
 #PARTIMOS PROVINCIA
-df3_provincia = df3[['provincia_id','nombre_provincia']].drop_duplicates().reset_index(drop =True)
+df3_provincia = df3[['provincia_id','provincia_nombre']].drop_duplicates().reset_index(drop =True)
 #correccion para que se asemeje a df4
 df3_provincia=df3_provincia.sort_values(by=['provincia_id']) 
-df3_dict = df3.drop('nombre_provincia',axis=1)
+df3_dict = df3.drop('provincia_nombre',axis=1)
 
 #PARTIMOS MUNICIPIO
-df3_municipio = df3[['municipio_id', 'nombre_municipio']].drop_duplicates().reset_index(drop=True)
-df3_dict = df3_dict.drop('nombre_municipio',axis=1)
+df3_municipio = df3[['municipio_id', 'municipio_nombre']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('municipio_nombre',axis=1)
 
 #PARTIMOS DEPARTAMENTO
-df3_departamento = df3[['departamento_id', 'nombre_departamento']].drop_duplicates().reset_index(drop=True)
-df3_dict = df3_dict.drop('nombre_departamento',axis=1)
+df3_departamento = df3[['departamento_id', 'departamento_nombre']].drop_duplicates().reset_index(drop=True)
+df3_dict = df3_dict.drop('departamento_nombre',axis=1)
 
 #PARTIMOS LOCALIDAD
 df3_localidad = df3[['id', 'nombre','funcion','centroide_lat','centroide_lon','categoria','fuente']].drop_duplicates().reset_index(drop=True)
 df3_dict = df3_dict.drop(labels=['nombre','funcion','centroide_lat','centroide_lon','categoria','fuente'],axis=1)
+
 """
 Nos dimos cuenta que el df3 tiene las id de los departamentos que aparecen en el df1. 
 Por lo cual debemos vincular ambos dataframe por medio de los nombres de departamento e incluir en el df1 

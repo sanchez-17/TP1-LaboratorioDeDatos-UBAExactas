@@ -1,11 +1,20 @@
 import pandas as pd
-from inline_sql import sql, sql_val
+from inline_sql import sql
+import matplotlib.pyplot as plt
+
 #%%
 # Carga de dataframes
-operador     = pd.read_csv("vuelo.csv")    
-salario      = pd.read_csv("aeropuerto.csv")    
-departamento = pd.read_csv("pasajero.csv")    
-provincia    = pd.read_csv("reserva.csv")
+operador     = './TablasLimpias/operador.csv'  
+salario      = './TablasLimpias/salario.csv'
+departamento = './TablasLimpias/departamento.csv'
+provincia    = './TablasLimpias/provincia.csv'
+clase        = './TablasLimpias/clase.csv'
+
+operador = pd.read_csv(operador)
+salario = pd.read_csv(salario)
+departamento = pd.read_csv(departamento)
+provincia = pd.read_csv(provincia)
+clase = pd.read_csv(clase)
 
 #%%
 # =============================================================================
@@ -152,3 +161,54 @@ consultaSQL = """
               """
 
 imprimirEjercicio(consigna, [salario,operador,departamento,provincia], consultaSQL)
+
+# =============================================================================
+# Ejercicio j:
+# =============================================================================
+
+def configuraciones_diseño():
+    plt.box(on=True)
+    ax = plt.gca()
+    ax.spines['top'].set_color('black')
+    ax.spines['bottom'].set_color('black')
+    ax.spines['left'].set_color('black')
+    ax.spines['right'].set_color('black')
+    ax.spines['top'].set_linewidth(2)
+    ax.spines['bottom'].set_linewidth(2)
+    ax.spines['left'].set_linewidth(2)
+    ax.spines['right'].set_linewidth(2)
+    #Ocultar numero de pixeles en eje X e Y
+    plt.gca().set_xticks([])
+    plt.gca().set_yticks([])
+#%%
+"""
+Ejercicio 1: Cantidad de Operadores por provincia.
+"""
+operadores_por_provincia        = pd.merge(operador, departamento, on='id_departamento', how='inner')
+operadores_con_nombre_provincia = pd.merge(operadores_por_provincia, provincia, on='id_provincia', how='inner')
+ocurrencias_por_provincia = operadores_por_provincia.nombre_provincia.value_counts()
+# Calcular el total de ocurrencias
+total_ocurrencias = ocurrencias_por_provincia.sum()
+# Calcular los porcentajes de ocurrencia
+porcentajes = (ocurrencias_por_provincia / total_ocurrencias) * 100
+# Crear la figura y el eje del gráfico
+fig, ax = plt.subplots()
+provincias = [str(d) for d in ocurrencias_por_provincia.index]
+values = ocurrencias_por_provincia.values
+plt.bar(provincias,values)
+#Agregar etiquetas de texto en cada barra
+for i in range(len(ocurrencias_por_provincia)):
+    ax.text(i , values[i],
+            f"{porcentajes.values[i]:.2f}%",
+            ha='center',
+            va='top',
+            rotation=60,
+            c="azure")
+# Configurar etiquetas y título del gráfico
+ax.set_xlabel('Provincia')
+ax.set_ylabel('Ocurrencias')
+ax.set_title("Cantidad de operadores por provincia")
+plt.savefig('./Graficos/operadores_por_provincia.png')
+plt.show()
+plt.close()
+#%%

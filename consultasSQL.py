@@ -52,27 +52,33 @@ def imprimirEjercicio(consigna, listaDeDataframesDeEntrada, consultaSQL):
 # EJERCICIOS
 # =============================================================================
 #%% EJERCICIO 1
-    
-# Ejericicio 1.1
 
-consigna = """Ejercicio 1:
-    
-                ¿Existen provincias que no presentan Operadores Orgánicos Certificados?
+consigna = """Ejercicio 1:\n
+                ¿Existen provincias que no presentan Operadores Orgánicos Certificados?\n
                 ¿En caso de que sí, cuántas y cuáles son?
 """    
 
 consultaSQL = """
-                SELECT DISTINCT Codigo, Nombre
-                FROM aeropuerto
-                WHERE Ciudad='Londres'
+                SELECT DISTINCT
+                   count(*) AS cant_operadores,
+                   pr.nombre_provincia AS provincia
+                   FROM operador AS op
+                   INNER JOIN departamento AS depto
+                   ON op.id_departamento = depto.id_departamento
+                   RIGHT OUTER JOIN provincia AS pr
+                   ON depto.id_provincia = pr.id_provincia 
+                   GROUP BY provincia
+                   ORDER BY cant_operadores ASC;
               """
 
 imprimirEjercicio(consigna, [aeropuerto], consultaSQL)
+#%%
+# Ejericicio 2
 
-# Ejericicio 1.2
-
-consigna = "Ejercicio 1.2"
-
+consigna = """Ejercicio 1:\n
+                ¿Existen provincias que no presentan Operadores Orgánicos Certificados?\n
+                ¿En caso de que sí, cuántas y cuáles son?
+"""    
 consultaSQL = """
                 SELECT DISTINCT Ciudad AS City
                 FROM aeropuerto

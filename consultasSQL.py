@@ -93,7 +93,6 @@ consultaSQL = """
 
 imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
 #%%
-#%%
 # Ejericicio 3
 
 consigna = """Ejercicio 3:\n
@@ -118,3 +117,22 @@ consultaSQL = """
 
 imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
 
+#%%
+# Ejericicio 4
+
+consigna = """Ejercicio 4:\n
+                ¿Cuál fue el salario promedio de esa actividad en 2022?\n
+                (si hay varios registros de salario, mostrar el más actual de ese año)
+"""    
+consultaSQL = """
+                SELECT
+                   ROUND(AVG(salario), 2) as promedio_anual,
+                   FROM (
+                     SELECT 
+                     salario_promedio AS salario,
+                     FROM salario
+                     WHERE id_clase = 10 AND anio = 2022
+                   )
+              """
+
+imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)

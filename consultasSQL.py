@@ -68,21 +68,51 @@ consultaSQL = """
                    RIGHT OUTER JOIN provincia AS pr
                    ON depto.id_provincia = pr.id_provincia 
                    GROUP BY provincia
-                   ORDER BY cant_operadores ASC;
+                   HAVING cant_operadores = 0;
               """
 
-imprimirEjercicio(consigna, [aeropuerto], consultaSQL)
+imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
 #%%
 # Ejericicio 2
 
-consigna = """Ejercicio 1:\n
-                ¿Existen provincias que no presentan Operadores Orgánicos Certificados?\n
-                ¿En caso de que sí, cuántas y cuáles son?
+consigna = """Ejercicio 2:\n
+                ¿Existen departamentos que no presentan Operadores Orgánicos
+                Certificados?\n
+                 ¿En caso de que sí, cuántos y cuáles son?
 """    
 consultaSQL = """
-                SELECT DISTINCT Ciudad AS City
-                FROM aeropuerto
-                WHERE Codigo='ORY' OR Codigo='CDG'
+                SELECT DISTINCT
+                   count(*) AS cant_operadores, 
+                   depto.nombre AS departamento
+                   FROM operador AS op
+                   RIGHT OUTER JOIN departamento AS depto
+                   ON op.id_departamento = depto.id_departamento
+                   GROUP BY departamento
+                   HAVING cant_operadores = 0;
               """
 
-imprimirEjercicio(consigna, [aeropuerto], consultaSQL)
+imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
+#%%
+#%%
+# Ejericicio 3
+
+consigna = """Ejercicio 3:\n
+                ¿Existen departamentos que no presentan Operadores Orgánicos
+                Certificados?\n
+                 ¿En caso de que sí, cuántos y cuáles son?
+"""    
+consultaSQL = """
+                SELECT DISTINCT
+                   count(*) AS cant_operadores, 
+                   depto.nombre AS departamento
+                   FROM operador AS op
+                   RIGHT OUTER JOIN departamento AS depto
+                   ON op.id_departamento = depto.id_departamento
+                   RIGHT OUTER JOIN provincia AS prov
+                   ON depto.id_provincia = pr.id_provincia
+                   GROUP BY departamento
+                   HAVING cant_operadores = 0;
+              """
+
+imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
+

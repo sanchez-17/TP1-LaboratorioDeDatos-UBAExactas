@@ -2,18 +2,10 @@ import pandas as pd
 from inline_sql import sql, sql_val
 #%%
 # Carga de dataframes
-vuelo      = pd.read_csv("vuelo.csv")    
-aeropuerto = pd.read_csv("aeropuerto.csv")    
-pasajero   = pd.read_csv("pasajero.csv")    
-reserva    = pd.read_csv("reserva.csv")
-
-# Ejercicio JOIN tuplas espúreas
-empleadoRol= pd.read_csv("empleadoRol.csv")    
-rolProyecto= pd.read_csv("rolProyecto.csv") 
-# Funciones de Agregacion
-examen     = pd.read_csv("examen.csv")
-examen03    = pd.read_csv("examen03.csv")
-# OPERACIONES ENTRE DATABASES
+operador     = pd.read_csv("vuelo.csv")    
+salario      = pd.read_csv("aeropuerto.csv")    
+departamento = pd.read_csv("pasajero.csv")    
+provincia    = pd.read_csv("reserva.csv")
 
 #%%
 # =============================================================================
@@ -91,7 +83,7 @@ consultaSQL = """
                    HAVING cant_operadores = 0;
               """
 
-imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
+imprimirEjercicio(consigna, [operador,departamento], consultaSQL)
 #%%
 # Ejericicio 3
 
@@ -115,7 +107,7 @@ consultaSQL = """
                    )
               """
 
-imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
+imprimirEjercicio(consigna, [operador,clase], consultaSQL)
 
 #%%
 # Ejericicio 4
@@ -135,4 +127,28 @@ consultaSQL = """
                    )
               """
 
-imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
+imprimirEjercicio(consigna, [salario], consultaSQL)
+#%%
+# Ejericicio 5
+
+consigna = """Ejercicio 5:\n
+                ¿Cuál es el promedio anual de los salarios en Argentina y cual es su desvío?\n
+                ¿Y a nivel provincial? ¿Se les ocurre una forma de que sean comparables a lo largo de los años?\n
+                ¿Necesitarían utilizar alguna fuente de datos externa secundaria? ¿Cuál?
+"""    
+consultaSQL = """
+                SELECT
+                   ROUND(AVG(salario_promedio), 2) as promedio,
+                   prov.nombre_provincia
+                   FROM salario
+                   INNER JOIN operador AS op
+                   ON salario.id_clase = op.id_clase
+                   INNER JOIN departamento AS depto
+                   ON op.id_departamento = depto.id_departamento
+                   RIGHT OUTER JOIN provincia AS prov
+                   ON depto.id_provincia = prov.id_provincia
+                   GROUP BY anio, prov.nombre_provincia
+                   ORDER BY anio ASC, prov.nombre_provincia ASC
+              """
+
+imprimirEjercicio(consigna, [salario,operador,departamento,provincia], consultaSQL)

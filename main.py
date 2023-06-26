@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #Grupo: Alta Data
-#integrantes : 
+#integrantes : Gaston Sanchez, Juan Pablo Hugo Aquilante, Mariano Papaleo
 import pandas as pd
 import re 
-from unidecode import unidecode
+from unidecode import unidecode #!pip install unidecode
 
 
 padron = './dataframes/padron-de-operadores-organicos-certificados.csv'

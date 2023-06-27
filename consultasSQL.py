@@ -292,9 +292,6 @@ imprimirEjercicio(consigna, [salario,operador,departamento,provincia], consultaS
 # =============================================================================
 # Ejercicio j.1: Cantidad de Operadores por provincia.
 # =============================================================================
-"""
-
-"""
 operadores_por_provincia        = pd.merge(operador, departamento, on='id_departamento', how='inner')
 operadores_con_nombre_provincia = pd.merge(operadores_por_provincia, provincia, on='id_provincia', how='inner')
 ocurrencias_por_provincia = operadores_con_nombre_provincia.nombre_provincia.value_counts()
@@ -401,10 +398,14 @@ cant_operadores.rename(columns={'provincia':'nombre_provincia'},inplace = True)
 salario_prom_provincial = salario_prom_provincial.merge(cant_operadores[['nombre_provincia','cant_operadores']], 
                                                         on = 'nombre_provincia',how ='left')
 
+fig, ax = plt.subplots(figsize=(10, 10))
+sns.scatterplot(data = salario_prom_provincial , x = 'cant_operadores', y = 'promedio_anual',hue='nombre_provincia',palette ='rainbow')
+ax.set_xlabel('cantidad operadores', fontsize=16)
+ax.set_ylabel('salario promedio último de 2022', fontsize=16)
 
-sns.scatterplot(data = salario_prom_provincial , x = 'cant_operadores', y = 'promedio_anual',hue='nombre_provincia',palette ='rainbow').set(
-    xlabel = 'cantidad operadores' , ylabel = 'salario promedio último de 2022')
-plt.legend(loc="best", bbox_to_anchor=(0.5, 1.05))
+plt.legend(loc='center left', bbox_to_anchor=(1, 0.5), title='Leyenda', handlelength=2.0)
+plt.grid(True)
+
 plt.savefig('./Graficos/ScatterEj3.png')
 plt.show()
 plt.close() 
@@ -428,7 +429,9 @@ salario_enero_prom = salario_enero[salario_enero['salario_promedio'] < quantil]
 plt.ylim(0, quantil)
 
 #Generar el gráfico de violín
-sns.violinplot(data = salario_enero_prom , x = 'salario_promedio' , y = 'nombre_provincia' ).set(xlabel = 'Salario promedio' , ylabel='Provincia')
+sns.violinplot(data = salario_enero_prom , x = 'salario_promedio' , y = 'nombre_provincia' )
+ax.set_xlabel('Salario promedio', fontsize=18)
+ax.set_ylabel('Provincia', fontsize=16)
 plt.savefig('./Graficos/ViolinPlotEj4.png')
 plt.show()
 plt.close()

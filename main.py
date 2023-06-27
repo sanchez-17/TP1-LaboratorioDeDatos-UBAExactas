@@ -582,7 +582,6 @@ df1 = pd.read_csv(df1_padron_atom)
 """--------------Exportamos todos los csv a la carpeta TablasLimpias------------------"""
 
 
-
 df1.to_csv('./TablasLimpias/operador.csv', index=False)
 df1_productos.to_csv('./TablasLimpias/producto.csv', index=False)
 df5_clae2.to_csv('./TablasLimpias/clase.csv', index=False)

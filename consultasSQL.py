@@ -154,6 +154,7 @@ prom_anual_salarios_nacional = sql ^ consultaSQL
 consultaSQL = """
                 SELECT
                    ROUND(AVG(salario_promedio), 2) as promedio_anual,
+                   ROUND(STDDEV(salario_promedio), 2) as desvio,
                    prov.nombre_provincia AS nombre_provincia, salario.anio AS anio
                    FROM salario
                    INNER JOIN operador AS op
@@ -165,7 +166,71 @@ consultaSQL = """
                    GROUP BY anio, prov.nombre_provincia
                    ORDER BY promedio_anual DESC
               """
-prom_anual_salarios_por_provincia = sql ^ consultaSQL
+prom_anual_salarios_provincial = sql ^ consultaSQL
+#%%
+#Vemos las 3 principales
+#Buenos Aires
+consultaSQL = """
+                SELECT
+                   ROUND(AVG(salario_promedio), 2) as promedio_anual,
+                   ROUND(STDDEV(salario_promedio), 2) as desvio,
+                   prov.nombre_provincia AS nombre_provincia, salario.anio AS anio
+                   FROM salario
+                   INNER JOIN operador AS op
+                   ON salario.id_clase = op.id_clase
+                   INNER JOIN departamento AS depto
+                   ON op.id_departamento = depto.id_departamento
+                   RIGHT OUTER JOIN provincia AS prov
+                   ON depto.id_provincia = prov.id_provincia
+                   WHERE prov.nombre_provincia = 'BUENOS AIRES'
+                   GROUP BY anio, prov.nombre_provincia
+                   ORDER BY promedio_anual DESC
+              """
+
+buenos_aires = sql ^ consultaSQL
+#%%
+#Misiones
+consultaSQL = """
+                SELECT
+                   ROUND(AVG(salario_promedio), 2) as promedio_anual,
+                   ROUND(STDDEV(salario_promedio), 2) as desvio,
+                   prov.nombre_provincia AS nombre_provincia, salario.anio AS anio
+                   FROM salario
+                   INNER JOIN operador AS op
+                   ON salario.id_clase = op.id_clase
+                   INNER JOIN departamento AS depto
+                   ON op.id_departamento = depto.id_departamento
+                   RIGHT OUTER JOIN provincia AS prov
+                   ON depto.id_provincia = prov.id_provincia
+                   WHERE prov.nombre_provincia = 'MISIONES'
+                   GROUP BY anio, prov.nombre_provincia
+                   ORDER BY promedio_anual DESC
+              """
+
+misiones = sql ^ consultaSQL
+#%%
+#Mendoza
+consultaSQL = """
+                SELECT
+                   ROUND(AVG(salario_promedio), 2) as promedio_anual,
+                   ROUND(STDDEV(salario_promedio), 2) as desvio,
+                   prov.nombre_provincia AS nombre_provincia, salario.anio AS anio
+                   FROM salario
+                   INNER JOIN operador AS op
+                   ON salario.id_clase = op.id_clase
+                   INNER JOIN departamento AS depto
+                   ON op.id_departamento = depto.id_departamento
+                   RIGHT OUTER JOIN provincia AS prov
+                   ON depto.id_provincia = prov.id_provincia
+                   WHERE prov.nombre_provincia = 'MENDOZA'
+                   GROUP BY anio, prov.nombre_provincia
+                   ORDER BY promedio_anual DESC
+              """
+
+mendoza = sql ^ consultaSQL
+#%%
+filtro = prom_anual_salarios_provincial.nombre_provincia.isin(["BUENOS AIRES", "MENDOZA", "MISIONES"])
+resultados_filtrados = prom_anual_salarios_provincial[filtro]
 #%%
 #Generamos un promedio por provincia y por anio. Luego tomamos desvio estandar agrupando por provincia
 

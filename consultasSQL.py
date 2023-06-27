@@ -125,7 +125,7 @@ consultaSQL = """
                 ORDER BY cant_operadores DESC
                    
               """
-cant_operadores_por_actividad = sql ^ consultaSQL
+cant_operadores_por_actividad = sql ^ consultaSQL#maxima actividad id_clave = 1
 imprimirEjercicio(consigna, [operador,clase], consultaSQL)
 
 #%%
@@ -137,15 +137,15 @@ consigna = """Ejercicio 4:\n
 """    
 consultaSQL = """
                 SELECT
-                   ROUND(AVG(salario), 2) as promedio_anual,
+                   ROUND(AVG(salario_promedio), 2) as promedio_anual,
                    FROM (
                      SELECT 
-                     salario_promedio AS salario,
+                     salario_promedio,
                      FROM salario s
-                     WHERE s.id_clase = 10 AND s.anio = 2022
+                     WHERE s.id_clase = 1 AND s.anio = 2022
                    )
               """
-
+salario_prom_act1_2022 = sql ^ consultaSQL #94261.49
 imprimirEjercicio(consigna, [salario], consultaSQL)
 #%%
 # Ejericicio 5
@@ -154,11 +154,12 @@ consigna = """Ejercicio 5:\n
                 ¿Cuál es el promedio anual de los salarios en Argentina y cual es su desvío?\n
                 ¿Y a nivel provincial? ¿Se les ocurre una forma de que sean comparables a lo largo de los años?\n
                 ¿Necesitarían utilizar alguna fuente de datos externa secundaria? ¿Cuál?
-"""    
+"""
+#Generamos un promedio por provincia y por anio
 consultaSQL = """
                 SELECT
-                   ROUND(AVG(salario_promedio), 2) as promedio,
-                   prov.nombre_provincia
+                   ROUND(AVG(salario_promedio), 2) as promedio_anual,
+                   prov.nombre_provincia, salario.anio AS anio
                    FROM salario
                    INNER JOIN operador AS op
                    ON salario.id_clase = op.id_clase
@@ -167,11 +168,11 @@ consultaSQL = """
                    RIGHT OUTER JOIN provincia AS prov
                    ON depto.id_provincia = prov.id_provincia
                    GROUP BY anio, prov.nombre_provincia
-                   ORDER BY anio ASC, prov.nombre_provincia ASC
+                   ORDER BY promedio_anual DESC
               """
-
+prom_anual_salarios = sql ^ consultaSQL
 imprimirEjercicio(consigna, [salario,operador,departamento,provincia], consultaSQL)
-
+#%%
 # =============================================================================
 # Ejercicio j:
 # =============================================================================

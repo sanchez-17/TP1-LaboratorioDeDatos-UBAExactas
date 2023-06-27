@@ -92,20 +92,17 @@ consultaSQL = """
 consigna = """Ejercicio 2:\n
                 ¿Existen departamentos que no presentan Operadores Orgánicos
                 Certificados?\n
-                 ¿En caso de que sí, cuántos y cuáles son?
+                ¿En caso de que sí, cuántos y cuáles son?
 """    
 consultaSQL = """
-                SELECT DISTINCT
-                   count(*)      AS cant_operadores, 
-                   depto.nombre  AS departamento
-                   FROM operador AS op
-                   RIGHT OUTER JOIN departamento AS depto
-                   ON op.id_departamento = depto.id_departamento
-                   GROUP BY departamento
-                   HAVING cant_operadores = 0;
+                SELECT COUNT(o.id_operador) AS cant_operadores, d.nombre_departamento
+                FROM departamento d
+                LEFT JOIN operador o ON d.id_departamento = o.id_departamento
+                GROUP BY d.id_departamento, d.nombre_departamento
+                HAVING cant_operadores = 0
               """
-
-imprimirEjercicio(consigna, [operador,departamento], consultaSQL)
+departamentos_sin_operadores = sql ^ consultaSQL
+imprimirEjercicio(consigna, [operador,departamento], consultaSQL)#307 rows
 #%%
 # Ejericicio 3
 

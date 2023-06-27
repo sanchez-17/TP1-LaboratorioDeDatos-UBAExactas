@@ -52,7 +52,7 @@ consultaSQL = """
               """
               
 cant_operadores_por_provincia = sql ^ consultaSQL
-
+#%%
 consultaSQL = """
                 SELECT DISTINCT
                    count(*)                AS cant_operadores,
@@ -66,7 +66,8 @@ consultaSQL = """
                    HAVING cant_operadores = 0;
               """
               
-
+provincias_sin_operadores = sql ^ consultaSQL
+print("Cantidad de provincias sin operadores organicos certificados: ",len(provincias_sin_operadores))
 imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
 
 #%%
@@ -85,7 +86,8 @@ consultaSQL = """
                 HAVING cant_operadores = 0
               """
 departamentos_sin_operadores = sql ^ consultaSQL
-imprimirEjercicio(consigna, [operador,departamento], consultaSQL)#307 rows
+imprimirEjercicio(consigna, [operador,departamento], consultaSQL)
+print("Cantidad de departamentos sin operadores organicos certificados: ",len(departamentos_sin_operadores))
 #%%
 # Ejericicio 3
 consigna = """Ejercicio 3:\n
@@ -126,6 +128,7 @@ consultaSQL = """
               """
 salario_prom_act1_2022 = sql ^ consultaSQL #94261.49
 imprimirEjercicio(consigna, [salario], consultaSQL)
+print("Salario promedio 2022 de la actividad con mas operadores: $",*(salario_prom_act1_2022.values)[0])
 #%%
 # Ejericicio 5
 
@@ -134,27 +137,18 @@ consigna = """Ejercicio 5:\n
                 ¿Y a nivel provincial? ¿Se les ocurre una forma de que sean comparables a lo largo de los años?\n
                 ¿Necesitarían utilizar alguna fuente de datos externa secundaria? ¿Cuál?
 """
-#Promedio salarial por año en Argentina
+#Promedio salarial con desvio por año en Argentina 
 consultaSQL = """SELECT
                     ROUND(AVG(salario_promedio), 2) as promedio_anual,
-                    salario.anio AS anio
-                    FROM salario
+                    STDDEV(salario_promedio) as desvio_estandar,
+                    anio
+                    FROM salario as s
+                    INNER JOIN operador as o
+                    ON o.id_clase = s.id_clase
                     GROUP BY anio
                     ORDER BY promedio_anual DESC
               """
 prom_anual_salarios_nacional = sql ^ consultaSQL
-#%% Desvio Estandar
-consultaSQL = """SELECT ROUND(STDDEV(promedio_anual), 2) as desvio
-                 FROM(
-                    SELECT
-                        ROUND(AVG(salario_promedio), 2) as promedio_anual,
-                        salario.anio AS anio
-                        FROM salario
-                        GROUP BY anio
-                        ORDER BY promedio_anual DESC
-                    )
-              """
-desvio_prom_anual_salarios_nacional = sql ^ consultaSQL
 #%%
 #Promedio anual de salarios por provincia
 consultaSQL = """
@@ -201,7 +195,6 @@ imprimirEjercicio(consigna, [salario,operador,departamento,provincia], consultaS
 # =============================================================================
 # Ejercicio j:
 # =============================================================================
-
 """
 Ejercicio 1: Cantidad de Operadores por provincia.
 """
@@ -220,18 +213,79 @@ provincias[10] ="CABA"
 plt.bar(provincias,values)
 plt.xticks(rotation=45)
 #Agregar etiquetas de texto en cada barra
-for i in range(len(ocurrencias_por_provincia)):
-    ax.text(i , values[i],
+for i,v in enumerate(values):
+    ax.text(i , v,
             f"{porcentajes.values[i]:.2f}%",
             ha='center',
-            va='top',
+            va='bottom',
             #rotation=60,
             c="black")
 # Configurar etiquetas y título del gráfico
 ax.set_xlabel('Provincia')
 ax.set_ylabel('Ocurrencias')
 ax.set_title("Cantidad de operadores por provincia")
-#plt.savefig('./Graficos/operadores_por_provincia.png')
+plt.savefig('./Graficos/operadores_por_provincia.png')
 plt.show()
 plt.close()
 #%%
+
+"""
+Ejercicio 2: Boxplot, por cada provincia, donde se pueda observar la cantidad de
+productos por operador.
+"""
+
+
+consultaSQL = """
+                   SELECT 
+                    id_operador AS id, 
+                    count(*) AS cantidad_productos
+                   FROM df1_productos
+                   GROUP BY id_operador;
+              """
+operador_cant_prod = sql ^ consultaSQL
+
+consultaSQL = """
+                   SELECT DISTINCT 
+                    oper.id_operador, 
+                    oper.nombre_provincia, 
+                    prod.cantidad_productos
+                   FROM operadores_con_nombre_provincia oper
+                   INNER JOIN operador_cant_prod prod
+                   ON oper.id_operador=prod.id
+                   ORDER BY oper.id_operador
+              """
+operador_prov_cant_prod = sql ^ consultaSQL
+
+operador_prov_filtrado = operador_prov_cant_prod.query('cantidad_productos <= 100')
+
+sns.boxplot(data=operador_prov_cant_prod, y="nombre_provincia", x="cantidad_productos").set(
+    ylabel="Provincia", xlabel="Cantidad de productos"
+)
+plt.show()
+plt.close()
+#%%
+"""
+Ejercicio 4: Salario promedio por provincia en ARG.
+"""
+import seaborn as sns
+salario.loc[len(salario)-1,['anio','mes']] # Ultimo ingreso medio = Enero 2023
+
+provincia.at[0,'nombre_provincia'] = 'CABA'
+salario_provincia = pd.merge(salario, provincia, on='id_provincia', how='inner')
+#desestimamos aquellos valores negativos
+salario = salario[salario['salario_promedio'] != -99]
+salario_2022 = salario[salario['anio'] == 2023]
+salario_enero = salario_2022[salario_2022['mes'] == 1]
+
+quantil = salario_enero.loc[:, "salario_promedio"].quantile(0.97)
+salario_enero_prom = salario_enero[salario_enero['salario_promedio'] < quantil]
+
+plt.ylim(0, quantil)
+#salario_promedio = salario_enero_prom['salario_promedio']
+#nombre_provincia = salario_enero_prom['nombre_provincia']
+
+# Generar el gráfico de violín
+#plt.violinplot(salario_promedio, vert=False)
+sns.violinplot(data = salario_enero_prom , x = 'salario_promedio' , y = 'nombre_provincia' ).set(xlabel = 'salario promedio' , ylabel='provincia')
+plt.show()
+plt.close()

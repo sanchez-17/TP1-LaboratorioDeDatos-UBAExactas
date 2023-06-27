@@ -590,12 +590,6 @@ df1 = df1.astype({"clae2": int})
 print('Cantidad de NaNs en la columna clae2 que recien agregamos:',len(df1[df1.clae2.isna()]))
 
 #%%
-#Checkpoint
-
-df1_padron_atom = './dataframes/checkpoints/padron_atomizado.csv'
-df1 = pd.read_csv(df1_padron_atom)
-
-#%%
 
 """ Primero, antes de exportar las tablas, hacemos algunos renames y drops
 para que los nombres de las tablas coincidan con el MER """

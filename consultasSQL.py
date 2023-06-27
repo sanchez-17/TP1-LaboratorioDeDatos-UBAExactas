@@ -199,7 +199,7 @@ Ejercicio 1: Cantidad de Operadores por provincia.
 """
 operadores_por_provincia        = pd.merge(operador, departamento, on='id_departamento', how='inner')
 operadores_con_nombre_provincia = pd.merge(operadores_por_provincia, provincia, on='id_provincia', how='inner')
-ocurrencias_por_provincia = operadores_por_provincia.nombre_provincia.value_counts()
+ocurrencias_por_provincia = operadores_con_nombre_provincia.nombre_provincia.value_counts()
 # Calcular el total de ocurrencias
 total_ocurrencias = ocurrencias_por_provincia.sum()
 # Calcular los porcentajes de ocurrencia

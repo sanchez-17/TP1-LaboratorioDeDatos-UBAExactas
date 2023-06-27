@@ -571,12 +571,8 @@ df4_departamento = df4_departamento.rename(columns ={'departamento_id':'id_depar
 df4_provincia = df4_provincia.rename(columns ={'provincia_id' : 'id_provincia','provincia' : 'nombre_provincia'})
 
 df5_clae2 = df5_clae2.rename(columns ={'clae2':'id_clase','clae2_desc' : 'descripcion'})
+df4_provincia.at[0,'nombre_provincia'] = 'CABA'
 
-#%%
-#Checkpoint
-
-df1_padron_atom = './dataframes/checkpoints/padron_atomizado.csv'
-df1 = pd.read_csv(df1_padron_atom)
 #%%%
 
 """--------------Exportamos todos los csv a la carpeta TablasLimpias------------------"""

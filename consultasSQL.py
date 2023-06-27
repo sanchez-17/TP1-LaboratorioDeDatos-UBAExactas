@@ -12,6 +12,7 @@ import pandas as pd
 from inline_sql import sql
 import matplotlib.pyplot as plt
 from funciones import *
+import seaborn as sns
 
 #%%
 # Carga de dataframes
@@ -20,12 +21,14 @@ salario      = './TablasLimpias/salario.csv'
 departamento = './TablasLimpias/departamento.csv'
 provincia    = './TablasLimpias/provincia.csv'
 clase        = './TablasLimpias/clase.csv'
+producto     = './TablasLimpias/producto.csv'
 
 operador = pd.read_csv(operador)
 salario = pd.read_csv(salario)
 departamento = pd.read_csv(departamento)
 provincia = pd.read_csv(provincia)
 clase = pd.read_csv(clase)
+producto = pd.read_csv(producto)
 
 #%%
 # =============================================================================
@@ -86,6 +89,8 @@ consultaSQL = """
                 HAVING cant_operadores = 0
               """
 departamentos_sin_operadores = sql ^ consultaSQL
+departamentos_sin_operadores.to_csv('./Graficos/departamentos_sin_operadores.csv', index=False)
+lista_depas = departamentos_sin_operadores.loc[:,departamentos_sin_operadores.columns[1]].values
 imprimirEjercicio(consigna, [operador,departamento], consultaSQL)
 print("Cantidad de departamentos sin operadores organicos certificados: ",len(departamentos_sin_operadores))
 #%%
@@ -130,6 +135,28 @@ salario_prom_act1_2022 = sql ^ consultaSQL #94261.49
 imprimirEjercicio(consigna, [salario], consultaSQL)
 print("Salario promedio 2022 de la actividad con mas operadores: $",*(salario_prom_act1_2022.values)[0])
 #%%
+#Salario promedio para todas las actividades en 2022 por provincia
+consultaSQL="""
+                    SELECT
+                        s.id_provincia,
+                        p.nombre_provincia,
+                        s.anio,
+                        AVG(s.salario_promedio) AS promedio_anual,
+                        STDDEV(salario_promedio) as desvio_estandar
+                    FROM
+                        salario s
+                    JOIN
+                        provincia p ON s.id_provincia = p.id_provincia
+                    INNER JOIN operador as o
+                        ON o.id_clase = s.id_clase
+                    WHERE
+                        s.anio = 2022 AND s.mes = 12
+                    GROUP BY
+                        s.id_provincia,
+                        p.nombre_provincia,
+                        s.anio
+"""
+salario_prom_provincial_2022 = sql ^ consultaSQL 
 # Ejericicio 5
 
 consigna = """Ejercicio 5:\n
@@ -188,6 +215,7 @@ consultaSQL = """
               """
 
 buenos_aires = sql ^ consultaSQL
+buenos_aires.to_csv('./Graficos/buenosAires.csv', index=False)
 #%%
 #Misiones
 consultaSQL = """
@@ -208,6 +236,8 @@ consultaSQL = """
               """
 
 misiones = sql ^ consultaSQL
+misiones.to_csv('./Graficos/misiones.csv', index=False)
+
 #%%
 #Mendoza
 consultaSQL = """
@@ -228,6 +258,7 @@ consultaSQL = """
               """
 
 mendoza = sql ^ consultaSQL
+mendoza.to_csv('./Graficos/mendoza.csv', index=False)
 #%%
 filtro = prom_anual_salarios_provincial.nombre_provincia.isin(["BUENOS AIRES", "MENDOZA", "MISIONES"])
 resultados_filtrados = prom_anual_salarios_provincial[filtro]
@@ -256,12 +287,13 @@ consultaSQL = """SELECT
 desvio_prom_anual_por_provincia = sql ^ consultaSQL
 #%%
 imprimirEjercicio(consigna, [salario,operador,departamento,provincia], consultaSQL)
+
 #%%
 # =============================================================================
-# Ejercicio j:
+# Ejercicio j.1: Cantidad de Operadores por provincia.
 # =============================================================================
 """
-Ejercicio 1: Cantidad de Operadores por provincia.
+
 """
 operadores_por_provincia        = pd.merge(operador, departamento, on='id_departamento', how='inner')
 operadores_con_nombre_provincia = pd.merge(operadores_por_provincia, provincia, on='id_provincia', how='inner')
@@ -293,64 +325,110 @@ plt.savefig('./Graficos/operadores_por_provincia.png')
 plt.show()
 plt.close()
 #%%
-
-"""
-Ejercicio 2: Boxplot, por cada provincia, donde se pueda observar la cantidad de
-productos por operador.
-"""
-
-
+# =============================================================================
+# Ejercicio j.2: Boxplot, por cada provincia, donde se pueda observar la cantidad de
+# productos por operador.
+# =============================================================================
 consultaSQL = """
                    SELECT 
                     id_operador AS id, 
                     count(*) AS cantidad_productos
-                   FROM df1_productos
+                   FROM producto
                    GROUP BY id_operador;
               """
 operador_cant_prod = sql ^ consultaSQL
-
+#%%
 consultaSQL = """
                    SELECT DISTINCT 
-                    oper.id_operador, 
-                    oper.nombre_provincia, 
-                    prod.cantidad_productos
+                        oper.id_operador, 
+                        oper.nombre_provincia, 
+                        prod.cantidad_productos
                    FROM operadores_con_nombre_provincia oper
                    INNER JOIN operador_cant_prod prod
                    ON oper.id_operador=prod.id
                    ORDER BY oper.id_operador
               """
 operador_prov_cant_prod = sql ^ consultaSQL
+#%%
+operador_prov_filtrado = operador_prov_cant_prod.query('cantidad_productos <= 12')
 
-operador_prov_filtrado = operador_prov_cant_prod.query('cantidad_productos <= 100')
-
-sns.boxplot(data=operador_prov_cant_prod, y="nombre_provincia", x="cantidad_productos").set(
+sns.boxplot(data=operador_prov_filtrado, y="nombre_provincia", x="cantidad_productos").set(
     ylabel="Provincia", xlabel="Cantidad de productos"
 )
+plt.savefig('./Graficos/boxPlotEj2.png')
 plt.show()
 plt.close()
+#%% Con plt
+# df = operador_prov_filtrado
+# plt.boxplot([df[df['nombre_provincia'] == value]['cantidad_productos'] for value in sorted(df['nombre_provincia'].unique())], vert=False)
+# plt.yticks(range(1, 25), sorted(df['nombre_provincia'].unique()))
+# plt.title("Box Plot")
+# plt.xlabel("cantidad de productos")
+# plt.ylabel("provincia")
+# plt.savefig('./Graficos/boxPlotEj2.png')
+# plt.show()
 #%%
+# =============================================================================
+# Ejercicio 3: Relación entre la cantidad de operadores y el salario promedio en cada provincia de ARG 
+#            en el año 2022 y con un promedio de salario del último mes
+# =============================================================================
+consultaSQL="""
+                    SELECT
+                        s.id_provincia,
+                        p.nombre_provincia,
+                        s.anio,
+                        AVG(s.salario_promedio) AS promedio_anual,
+                        STDDEV(salario_promedio) as desvio_estandar
+                    FROM
+                        salario s
+                    JOIN
+                        provincia p ON s.id_provincia = p.id_provincia
+                    INNER JOIN operador as o
+                        ON o.id_clase = s.id_clase
+                    WHERE
+                        s.anio = 2022 AND s.mes = 12
+                    GROUP BY
+                        s.id_provincia,
+                        p.nombre_provincia,
+                        s.anio
 """
-Ejercicio 4: Salario promedio por provincia en ARG.
-"""
-import seaborn as sns
+salario_prom_provincial= sql ^ consultaSQL
+
+salario_prom_provincial.at[0,'nombre_provincia'] = 'CABA'
+cant_operadores = pd.DataFrame({'provincia': provincias, 'cant_operadores': values})
+cant_operadores.rename(columns={'provincia':'nombre_provincia'},inplace = True)
+
+salario_prom_provincial = salario_prom_provincial.merge(cant_operadores[['nombre_provincia','cant_operadores']], 
+                                                        on = 'nombre_provincia',how ='left')
+
+
+sns.scatterplot(data = salario_prom_provincial , x = 'cant_operadores', y = 'promedio_anual',hue='nombre_provincia',palette ='rainbow').set(
+    xlabel = 'cantidad operadores' , ylabel = 'salario promedio último de 2022')
+plt.legend(loc="best", bbox_to_anchor=(0.5, 1.05))
+plt.savefig('./Graficos/ScatterEj3.png')
+plt.show()
+plt.close() 
+#%%
+# =============================================================================
+# Ejercicio j.4: Salario promedio por provincia en ARG.
+# =============================================================================
+
 salario.loc[len(salario)-1,['anio','mes']] # Ultimo ingreso medio = Enero 2023
 
 provincia.at[0,'nombre_provincia'] = 'CABA'
 salario_provincia = pd.merge(salario, provincia, on='id_provincia', how='inner')
 #desestimamos aquellos valores negativos
-salario = salario[salario['salario_promedio'] != -99]
-salario_2022 = salario[salario['anio'] == 2023]
+salario_p = salario_provincia[salario_provincia['salario_promedio'] != -99]
+salario_2022 = salario_p[salario_p['anio'] == 2023]
 salario_enero = salario_2022[salario_2022['mes'] == 1]
 
 quantil = salario_enero.loc[:, "salario_promedio"].quantile(0.97)
 salario_enero_prom = salario_enero[salario_enero['salario_promedio'] < quantil]
 
 plt.ylim(0, quantil)
-#salario_promedio = salario_enero_prom['salario_promedio']
-#nombre_provincia = salario_enero_prom['nombre_provincia']
 
-# Generar el gráfico de violín
-#plt.violinplot(salario_promedio, vert=False)
-sns.violinplot(data = salario_enero_prom , x = 'salario_promedio' , y = 'nombre_provincia' ).set(xlabel = 'salario promedio' , ylabel='provincia')
+#Generar el gráfico de violín
+sns.violinplot(data = salario_enero_prom , x = 'salario_promedio' , y = 'nombre_provincia' ).set(xlabel = 'Salario promedio' , ylabel='Provincia')
+plt.savefig('./Graficos/ViolinPlotEj4.png')
 plt.show()
 plt.close()

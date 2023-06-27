@@ -1,6 +1,17 @@
+"""
+TP1LaboDatos.ipynb
+
+Grupo: AltaData
+
+Integrantes:Gaston Sanchez, Mariano Papaleo, Juan Pablo Hugo Aquilante
+
+#Preguntas de ejercicios i), j)
+
+"""
 import pandas as pd
 from inline_sql import sql
 import matplotlib.pyplot as plt
+from funciones import *
 
 #%%
 # Carga de dataframes
@@ -17,38 +28,6 @@ provincia = pd.read_csv(provincia)
 clase = pd.read_csv(clase)
 
 #%%
-# =============================================================================
-# DEFINICION DE FUNCIÓN DE IMPRESIÓN EN PANTALLA
-# =============================================================================
-# Imprime en pantalla en un formato ordenado:
-    # 1. Consigna
-    # 2. Cada dataframe de la lista de dataframes de entrada
-    # 3. Query
-    # 4. Dataframe de salida
-def imprimirEjercicio(consigna, listaDeDataframesDeEntrada, consultaSQL):
-    
-    print("# -----------------------------------------------------------------------------")
-    print("# Consigna: ", consigna)
-    print("# -----------------------------------------------------------------------------")
-    print()
-    for i in range(len(listaDeDataframesDeEntrada)):
-        print("# Entrada 0",i,sep='')
-        print("# -----------")
-        print(listaDeDataframesDeEntrada[i])
-        print()
-    print("# SQL:")
-    print("# ----")
-    print(consultaSQL)
-    print()
-    print("# Salida:")
-    print("# -------")
-    print(sql^ consultaSQL)
-    print()
-    print("# -----------------------------------------------------------------------------")
-    print("# -----------------------------------------------------------------------------")
-    print()
-    print()
-
 # =============================================================================
 # EJERCICIOS
 # =============================================================================
@@ -223,21 +202,6 @@ imprimirEjercicio(consigna, [salario,operador,departamento,provincia], consultaS
 # Ejercicio j:
 # =============================================================================
 
-def configuraciones_diseño():
-    plt.box(on=True)
-    ax = plt.gca()
-    ax.spines['top'].set_color('black')
-    ax.spines['bottom'].set_color('black')
-    ax.spines['left'].set_color('black')
-    ax.spines['right'].set_color('black')
-    ax.spines['top'].set_linewidth(2)
-    ax.spines['bottom'].set_linewidth(2)
-    ax.spines['left'].set_linewidth(2)
-    ax.spines['right'].set_linewidth(2)
-    #Ocultar numero de pixeles en eje X e Y
-    plt.gca().set_xticks([])
-    plt.gca().set_yticks([])
-#%%
 """
 Ejercicio 1: Cantidad de Operadores por provincia.
 """

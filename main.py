@@ -1,14 +1,18 @@
 # -*- coding: utf-8 -*-
-"""TP1LaboDatos.ipynb
+"""
+TP1LaboDatos.ipynb
+
+Grupo: AltaData
+
+Integrantes:Gaston Sanchez, Mariano Papaleo, Juan Pablo Hugo Aquilante
 
 #Limpieza de datos/partición de (algunas) tablas
 
-##Carga de modulos y dataframes
 """
+#Carga de modulos y dataframes
 
 import pandas as pd
-import re 
-from unidecode import unidecode
+from funciones import *
 padron = './TablasOriginales/padron-de-operadores-organicos-certificados.csv'
 salario = './TablasOriginales/w_median_depto_priv_clae2.csv'
 loccensales = './TablasOriginales/localidades-censales.csv'
@@ -22,62 +26,6 @@ df4 = pd.read_csv(dicdepto)
 df5 = pd.read_csv(dicclase)
 
 #%%
-"""##Funciones auxiliares"""
-
-def crear_y_añadir_fila(df,fila_old,col,valor):
-    df.loc[len(df)] = df.loc[fila_old,:]
-    df.at[len(df)-1, col] = valor
-
-def atomizarFila(df,col,fila,string):
-    valores_atomicos = df.loc[fila, col].split(string)
-    for valor in valores_atomicos:
-        crear_y_añadir_fila(df, fila,col, valor)
-        #df.loc[len(df)] = df.loc[fila,:]
-        #df.at[len(df)-1, col] = valor
-    #borramos la fila original    
-    df.drop([fila],inplace=True)
-    df.reset_index(drop=True, inplace=True)
-
-def atomizarColumna(df,col,string):
-    for i in range(len(df)):
-        atomizarFila(df,col,0,string)
-
-
-def quitar_parentesis(string):
-    #Quita todo lo que esta entre parentesis
-    regex = r"\([^()]*\)"
-    res = re.sub(regex, "", string)
-    return res
-
-def reemplazar(string,cadena,reemplazo):
-    return string.replace(cadena,reemplazo)
-
-def sacar_espacios_en_extremos(string):
-    return string.strip()
-
-def cuantos_nan(df):
-    nan_cant = df.isna().sum()
-    nan_porcentaje = (nan_cant / len(df)) * 100
-    res = pd.concat([nan_cant, nan_porcentaje], axis=1, keys=['Recuento de NaN', 'Porcentaje de NaN'])
-    res['Porcentaje de NaN'] = res['Porcentaje de NaN'].round(2).astype(str) + '%'
-    res.index = df.columns
-    print(res)
-
-def extraer_pronombres(texto):
-    # Expresión regular para encontrar pronombres
-    patron = r'\b(para|de|con)\b'
-
-    # Remover los pronombres del texto
-    texto_sin_pronombres = re.sub(patron, '', texto, flags=re.IGNORECASE)
-    
-    # Retornar el texto sin pronombres
-    return texto_sin_pronombres
-    
-def quitar_acentos(palabra):
-    return unidecode(palabra)
-
-#%%
-
 # DROPS DE LOS DATAFRAMES POR SER CONSIDERADOS COLUMNAS IRRELEVANTES O REDUNDANTES
 
 df1 = df1.drop(['pais','pais_id','localidad'],axis=1)

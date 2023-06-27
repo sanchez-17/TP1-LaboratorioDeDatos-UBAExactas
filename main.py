@@ -590,42 +590,67 @@ df1 = df1.astype({"clae2": int})
 print('Cantidad de NaNs en la columna clae2 que recien agregamos:',len(df1[df1.clae2.isna()]))
 
 #%%
+""" DICCIONARIOS DE ID_CERTIFICADORA Y ID_CATEGORIA """
+
+# Armamos un tabla que sirva de diccionario de id_certificadora
+df1_certificadora = df1[['Certificadora_id','certificadora_deno']].drop_duplicates().reset_index(drop = True)
+df1_certificadora=df1_certificadora.sort_values(by=['Certificadora_id']) 
+certificadora = df1_certificadora.rename(columns ={'Certificadora_id' : 'id_certificadora'})
+
+
+# Armamos un tabla que sirva de diccionario de id_categoria
+df1_categoria = df1[['categoria_id','categoria_desc']].drop_duplicates().reset_index(drop = True)
+df1_categoria=df1_categoria.sort_values(by=['categoria_id'])
+categoria = df1_categoria.rename(columns ={'categoria_id' : 'id_categoria'})
+
+#%%
+
+""" Antes de exportar las tablas, hacemos algunos renames, drops e inserts
+para que los nombres de las tablas coincidan con el MER """
+
+#Drops
+df1 = df1.drop(['provincia_id','provincia','departamento','productos','categoria_desc','certificadora_deno'],axis=1)
+
+#Inserts
+df1.insert(2,'clae2',df1.pop('clae2'))
+
+#Renames
+df1 = df1.rename(columns ={'departamento_id':'id_departamento', 'clae2' : 'id_clase','categoria_id' : 'id_categoria',
+                           'razón social' : 'razon_social', 'Certificadora_id' : 'id_certificadora',})
+    
+df2 = df2.rename(columns ={'departamento_id':'id_departamento'})
+
+df3 = df3.rename(columns ={'municipio_nombre':'municipio'})
+
+df4_departamento = df4_departamento.rename(columns ={'departamento_id':'id_departamento', 'departamento' : 'nombre_departamento'
+                                                     ,'provincia_id' : 'id_provincia'})
+    
+df4_provincia = df4_provincia.rename(columns ={'provincia_id' : 'id_provincia','provincia' : 'nombre_provincia'})
+
+df5_clae2 = df5_clae2.rename(columns ={'clae2':'id_clase','clae2_desc' : 'descripcion'})
+
+#%%
 #Checkpoint
 
 df1_padron_atom = './dataframes/checkpoints/padron_atomizado.csv'
 df1 = pd.read_csv(df1_padron_atom)
+#%%%
 
-#%%
-
-""" Primero, antes de exportar las tablas, hacemos algunos renames y drops
-para que los nombres de las tablas coincidan con el MER """
-
-df1 = df1.drop(['provincia_id','provincia','departamento','productos','categoria_desc','certificadora_deno'],axis=1)
-df1.insert(2,'clae2',df1.pop('clae2'))
-df1 = df1.rename(columns ={'departamento_id':'id_departamento', 'clae2' : 'id_clase','categoria_id' : 'id_categoria',
-                           'razón social' : 'razon_social', 'Certificadora_id' : 'id_certificadora',})
-df2 = df2.rename(columns ={'departamento_id':'id_departamento'})
-df3 = df3.rename(columns ={'municipio_nombre':'municipio'})
-df4_departamento = df4_departamento.rename(columns ={'departamento_id':'id_departamento', 'departamento' : 'nombre_departamento'
-                                                     ,'provincia_id' : 'id_provincia'})
-df4_provincia = df4_provincia.rename(columns ={'provincia_id' : 'id_provincia','provincia' : 'nombre_provincia'})
-df5_clae2 = df5_clae2.rename(columns ={'clae2':'id_clase','clae2_desc' : 'descripcion'})
-
-#%%
-
-"""##Exportamos todos los csv a la carpeta TablasLimpias
-
-"""
+"""--------------Exportamos todos los csv a la carpeta TablasLimpias------------------"""
 
 
 
 df1.to_csv('./TablasLimpias/operador.csv', index=False)
-df2.to_csv('./TablasLimpias/salario.csv', index=False)
+df1_productos.to_csv('./TablasLimpias/producto.csv', index=False)
 df5_clae2.to_csv('./TablasLimpias/clase.csv', index=False)
+categoria.to_csv('./TablasLimpias/categoria.csv', index=False)
 df4_departamento.to_csv('./TablasLimpias/departamento.csv', index=False)
 df4_provincia.to_csv('./TablasLimpias/provincia.csv', index=False)
+certificadora.to_csv('./TablasLimpias/certificadora.csv', index=False)
+df2.to_csv('./TablasLimpias/salario.csv', index=False)
 
 df3_limpio.to_csv('./TablasLimpias/df3_limpio.csv', index=False)
 df4_limpio.to_csv('./TablasLimpias/df4_limpio.csv', index=False)
 df5_limpio.to_csv('./TablasLimpias/df5.csv', index=False)
 df5_letra.to_csv('./TablasLimpias/df5_letras.csv', index=False)
+

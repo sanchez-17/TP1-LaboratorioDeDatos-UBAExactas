@@ -58,6 +58,21 @@ consigna = """Ejercicio 1:\n
                 ¿Existen provincias que no presentan Operadores Orgánicos Certificados?\n
                 ¿En caso de que sí, cuántas y cuáles son?
 """    
+#Vemos la cant por provincia y luego filtramos los que tienen valor 0
+consultaSQL = """
+                SELECT DISTINCT
+                   count(*)                AS cant_operadores,
+                   pr.nombre_provincia     AS provincia
+                   FROM operador           AS op
+                   INNER JOIN departamento AS depto
+                   ON op.id_departamento = depto.id_departamento
+                   RIGHT OUTER JOIN provincia AS pr
+                   ON depto.id_provincia = pr.id_provincia 
+                   GROUP BY provincia
+                   ORDER BY cant_operadores DESC
+              """
+              
+cant_operadores_por_provincia = sql ^ consultaSQL
 
 consultaSQL = """
                 SELECT DISTINCT
@@ -71,21 +86,10 @@ consultaSQL = """
                    GROUP BY provincia
                    HAVING cant_operadores = 0;
               """
+              
 
 imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
-#%%
-consultaSQL = """
-                SELECT DISTINCT
-                   count(*)                AS cant_operadores,
-                   pr.nombre_provincia     AS provincia
-                   FROM operador           AS op
-                   INNER JOIN departamento AS depto
-                   ON op.id_departamento = depto.id_departamento
-                   RIGHT OUTER JOIN provincia AS pr
-                   ON depto.id_provincia = pr.id_provincia 
-                   GROUP BY provincia
-                   HAVING cant_operadores = 0;
-              """
+
 #%%
 # Ejericicio 2
 
@@ -105,27 +109,23 @@ departamentos_sin_operadores = sql ^ consultaSQL
 imprimirEjercicio(consigna, [operador,departamento], consultaSQL)#307 rows
 #%%
 # Ejericicio 3
-
 consigna = """Ejercicio 3:\n
                 ¿Cuál es la actividad que más operadores tiene?
 """    
+#Vemos por actividad y luego agarramos el maximo
 consultaSQL = """
-                SELECT              
-                   MAX(cant_operadores)   AS maxima_cant_operadores,
-                   ANY_VALUE(descripcion) AS descripcion_clase,
-                   ANY_VALUE(id_clase)    AS id_clase
-                   FROM (
-                     SELECT
-                     count(op.id_operador) AS cant_operadores,
-                     clase.descripcion     AS descripcion,
-                     clase.id_clase        AS id_clase
-                     FROM operador         AS op
-                     RIGHT OUTER JOIN clase
-                     ON op.id_clase = clase.id_clase
-                     GROUP BY clase.id_clase, clase.descripcion
-                   )
+                SELECT
+                count(op.id_operador) AS cant_operadores,
+                clase.descripcion     AS descripcion,
+                clase.id_clase        AS id_clase
+                FROM operador         AS op
+                RIGHT OUTER JOIN clase
+                ON op.id_clase = clase.id_clase
+                GROUP BY clase.id_clase, clase.descripcion
+                ORDER BY cant_operadores DESC
+                   
               """
-
+cant_operadores_por_actividad = sql ^ consultaSQL
 imprimirEjercicio(consigna, [operador,clase], consultaSQL)
 
 #%%
@@ -141,8 +141,8 @@ consultaSQL = """
                    FROM (
                      SELECT 
                      salario_promedio AS salario,
-                     FROM salario
-                     WHERE id_clase = 10 AND anio = 2022
+                     FROM salario s
+                     WHERE s.id_clase = 10 AND s.anio = 2022
                    )
               """
 

@@ -155,11 +155,33 @@ consigna = """Ejercicio 5:\n
                 ¿Y a nivel provincial? ¿Se les ocurre una forma de que sean comparables a lo largo de los años?\n
                 ¿Necesitarían utilizar alguna fuente de datos externa secundaria? ¿Cuál?
 """
-#Generamos un promedio por provincia y por anio
+#Promedio salarial por año en Argentina
+consultaSQL = """SELECT
+                    ROUND(AVG(salario_promedio), 2) as promedio_anual,
+                    salario.anio AS anio
+                    FROM salario
+                    GROUP BY anio
+                    ORDER BY promedio_anual DESC
+              """
+prom_anual_salarios_nacional = sql ^ consultaSQL
+#%% Desvio Estandar
+consultaSQL = """SELECT ROUND(STDDEV(promedio_anual), 2) as desvio
+                 FROM(
+                    SELECT
+                        ROUND(AVG(salario_promedio), 2) as promedio_anual,
+                        salario.anio AS anio
+                        FROM salario
+                        GROUP BY anio
+                        ORDER BY promedio_anual DESC
+                    )
+              """
+desvio_prom_anual_salarios_nacional = sql ^ consultaSQL
+#%%
+#Promedio anual de salarios por provincia
 consultaSQL = """
                 SELECT
                    ROUND(AVG(salario_promedio), 2) as promedio_anual,
-                   prov.nombre_provincia, salario.anio AS anio
+                   prov.nombre_provincia AS nombre_provincia, salario.anio AS anio
                    FROM salario
                    INNER JOIN operador AS op
                    ON salario.id_clase = op.id_clase
@@ -170,7 +192,31 @@ consultaSQL = """
                    GROUP BY anio, prov.nombre_provincia
                    ORDER BY promedio_anual DESC
               """
-prom_anual_salarios = sql ^ consultaSQL
+prom_anual_salarios_por_provincia = sql ^ consultaSQL
+#%%
+#Generamos un promedio por provincia y por anio. Luego tomamos desvio estandar agrupando por provincia
+
+consultaSQL = """SELECT
+                    ROUND(STDDEV(promedio_anual), 2) as desvio,
+                    nombre_provincia
+                    FROM(
+                        SELECT
+                           ROUND(AVG(salario_promedio), 2) as promedio_anual,
+                           prov.nombre_provincia AS nombre_provincia, salario.anio AS anio
+                           FROM salario
+                           INNER JOIN operador AS op
+                           ON salario.id_clase = op.id_clase
+                           INNER JOIN departamento AS depto
+                           ON op.id_departamento = depto.id_departamento
+                           RIGHT OUTER JOIN provincia AS prov
+                           ON depto.id_provincia = prov.id_provincia
+                           GROUP BY anio, prov.nombre_provincia
+                           ORDER BY promedio_anual DESC
+                       )
+                    GROUP BY nombre_provincia
+              """
+desvio_prom_anual_por_provincia = sql ^ consultaSQL
+#%%
 imprimirEjercicio(consigna, [salario,operador,departamento,provincia], consultaSQL)
 #%%
 # =============================================================================
@@ -203,23 +249,25 @@ total_ocurrencias = ocurrencias_por_provincia.sum()
 # Calcular los porcentajes de ocurrencia
 porcentajes = (ocurrencias_por_provincia / total_ocurrencias) * 100
 # Crear la figura y el eje del gráfico
-fig, ax = plt.subplots()
+fig, ax = plt.subplots(figsize=(18,5))
 provincias = [str(d) for d in ocurrencias_por_provincia.index]
 values = ocurrencias_por_provincia.values
+provincias[10] ="CABA"
 plt.bar(provincias,values)
+plt.xticks(rotation=45)
 #Agregar etiquetas de texto en cada barra
 for i in range(len(ocurrencias_por_provincia)):
     ax.text(i , values[i],
             f"{porcentajes.values[i]:.2f}%",
             ha='center',
             va='top',
-            rotation=60,
-            c="azure")
+            #rotation=60,
+            c="black")
 # Configurar etiquetas y título del gráfico
 ax.set_xlabel('Provincia')
 ax.set_ylabel('Ocurrencias')
 ax.set_title("Cantidad de operadores por provincia")
-plt.savefig('./Graficos/operadores_por_provincia.png')
+#plt.savefig('./Graficos/operadores_por_provincia.png')
 plt.show()
 plt.close()
 #%%

@@ -74,6 +74,19 @@ consultaSQL = """
 
 imprimirEjercicio(consigna, [operador,departamento,provincia], consultaSQL)
 #%%
+consultaSQL = """
+                SELECT DISTINCT
+                   count(*)                AS cant_operadores,
+                   pr.nombre_provincia     AS provincia
+                   FROM operador           AS op
+                   INNER JOIN departamento AS depto
+                   ON op.id_departamento = depto.id_departamento
+                   RIGHT OUTER JOIN provincia AS pr
+                   ON depto.id_provincia = pr.id_provincia 
+                   GROUP BY provincia
+                   HAVING cant_operadores = 0;
+              """
+#%%
 # Ejericicio 2
 
 consigna = """Ejercicio 2:\n
